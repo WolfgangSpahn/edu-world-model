@@ -42,7 +42,7 @@ Better IDE support, compile-time error checking, and self-documenting interfaces
 ### Educational Software Design
 - **Principle**: Code readability over performance optimization
 - **Implementation**: Verbose variable names, clear function signatures
-- **Example**: `calculateVolumeRecurrence()` instead of `calcVol()`
+- **Example**: `calculateValueRecurrence()` instead of `calcVol()`
 
 ### Mathematical Model Validation
 - **Principle**: Validate inputs before calculation, clamp during calculation

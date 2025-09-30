@@ -75,8 +75,8 @@ That's it! 4 lines to load, modify, and calculate.console.log('Available indicat
 
 // Get historical data (1980-2025)
 const historicalCO2 = sim.getHistoricalData('co2_emissions');
-console.log(`CO2 in 1980: ${historicalCO2[0].volume} (rate: ${historicalCO2[0].rate})`);
-console.log(`CO2 in 2025: ${historicalCO2[45].volume} (rate: ${historicalCO2[45].rate})`);
+console.log(`CO2 in 1980: ${historicalCO2[0].value} (rate: ${historicalCO2[0].rate})`);
+console.log(`CO2 in 2025: ${historicalCO2[45].value} (rate: ${historicalCO2[45].rate})`);
 ```
 
 ### 2. Modify Trends and Run Simulation
@@ -95,8 +95,8 @@ const projections = sim.getProjections('co2_emissions');
 const projection2030 = projections.find(p => p.year === 2030);
 const projection2050 = projections.find(p => p.year === 2050);
 
-console.log(`CO2 in 2030: ${projection2030.volume} (rate: ${projection2030.rate})`);
-console.log(`CO2 in 2050: ${projection2050.volume} (rate: ${projection2050.rate})`);
+console.log(`CO2 in 2030: ${projection2030.value} (rate: ${projection2030.rate})`);
+console.log(`CO2 in 2050: ${projection2050.value} (rate: ${projection2050.rate})`);
 ```
 
 ### 3. Compare Scenarios
@@ -106,7 +106,7 @@ console.log(`CO2 in 2050: ${projection2050.volume} (rate: ${projection2050.rate}
 sim.reset();
 sim.run();
 const scenarioDefault = sim.getProjections('co2_emissions')
-  .find(p => p.year === 2070).volume;
+  .find(p => p.year === 2070).value;
 
 // Scenario 2: Aggressive reduction
 sim.reset();
@@ -115,7 +115,7 @@ sim.setTrend(2025, 'co2_emissions', -0.5)
    .setTrend(2055, 'co2_emissions', -1.5)
    .run();
 const scenarioReduction = sim.getProjections('co2_emissions')
-  .find(p => p.year === 2070).volume;
+  .find(p => p.year === 2070).value;
 
 console.log(`Default 2070: ${scenarioDefault}`);
 console.log(`Reduction 2070: ${scenarioReduction}`);
@@ -135,7 +135,7 @@ sim.loadData('./data/projections.yaml');
 // Current trend
 sim.run();
 const currentForest2070 = sim.getProjections('forests_area')
-  .find(p => p.year === 2070).volume;
+  .find(p => p.year === 2070).value;
 
 // Enhanced conservation (slower decline)
 sim.reset();
@@ -145,7 +145,7 @@ sim.setTrend(2025, 'forests_area', -0.1)  // Reduce deforestation rate
    .run();
 
 const conservationForest2070 = sim.getProjections('forests_area')
-  .find(p => p.year === 2070).volume;
+  .find(p => p.year === 2070).value;
 
 console.log('Forest Conservation Impact Analysis:');
 console.log(`Current trend: ${currentForest2070} thousand km²`);
@@ -182,7 +182,7 @@ sim.run();
 console.log('Environmental Policy Results for 2070:');
 Object.keys(environmentalPolicy).forEach(indicator => {
   const result = sim.getProjections(indicator).find(p => p.year === 2070);
-  console.log(`${indicator}: ${result.volume} ${sim.indicators.get(indicator).unit}`);
+  console.log(`${indicator}: ${result.value} ${sim.indicators.get(indicator).unit}`);
 });
 ```
 
@@ -197,7 +197,7 @@ sim.loadData('./data/projections.yaml');
 // Get baseline 2025 data
 const baseline2025 = sim.getProjections('co2_emissions').find(p => p.year === 2025);
 console.log('2025 Baseline:', {
-  volume: baseline2025.volume,
+  value: baseline2025.value,
   rate: baseline2025.rate,
   trend: baseline2025.trend
 });
@@ -207,17 +207,17 @@ sim.setTrend(2025, 'co2_emissions', 0.8).run();
 
 const result2026 = sim.getProjections('co2_emissions').find(p => p.year === 2026);
 console.log('2026 Result:', {
-  volume: result2026.volume,
+  value: result2026.value,
   rate: result2026.rate,
   trend: result2026.trend
 });
 
 // Mathematical verification:
 // r_2026 = r_2025 + τ_2025 = baseline2025.rate + 0.8
-// v_2026 = v_2025 + r_2025 = baseline2025.volume + baseline2025.rate
+// v_2026 = v_2025 + r_2025 = baseline2025.value + baseline2025.rate
 console.log('Mathematical Verification:');
 console.log(`Expected rate: ${baseline2025.rate + 0.8}`);
-console.log(`Expected volume: ${baseline2025.volume + baseline2025.rate}`);
+console.log(`Expected value: ${baseline2025.value + baseline2025.rate}`);
 ```
 
 ## Common Patterns

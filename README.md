@@ -30,7 +30,7 @@ const data = loadData('./data/projections.yaml');
 
 // Get baseline projection for 2030
 const baseline = getProjection(data, 'co2_emissions', 2030);
-console.log(`Baseline CO2 2030: ${baseline?.volume.toFixed(2)} units`);
+console.log(`Baseline CO2 2030: ${baseline?.value.toFixed(2)} units`);
 
 // Apply a policy intervention (trend modification)
 setTrend(data, 'co2_emissions', 2025, -1.0); // Reduce trend by 1.0
@@ -40,7 +40,7 @@ calculate(data);
 
 // See the impact
 const updated = getProjection(data, 'co2_emissions', 2030);
-console.log(`After intervention: ${updated?.volume.toFixed(2)} units`);
+console.log(`After intervention: ${updated?.value.toFixed(2)} units`);
 ```
 
 ## Interactive REPL
@@ -76,13 +76,13 @@ The simulation uses a simple forward-calculation model:
 
 ```
 rate[t+1] = clamp(rate[t] + trend[t], min_rate, max_rate)
-volume[t+1] = volume[t] + rate[t]
+value[t+1] = value[t] + rate[t]
 ```
 
 Where:
 - **Rate**: The yearly change amount
 - **Trend**: Policy intervention that modifies the rate
-- **Volume**: Cumulative total over time
+- **Value**: Cumulative total over time
 - **Clamp**: Bounds checking using configured limits
 
 ### Milestone Years
@@ -103,8 +103,8 @@ projections:
     paths:
       unit: "Gt CO2/year"
       data:
-        "2025": { rate: 40, trend: 0, volume: 2600 }
-        "2026": { rate: 40, trend: 0, volume: 2640 }
+        "2025": { rate: 40, trend: 0, value: 2600 }
+        "2026": { rate: 40, trend: 0, value: 2640 }
         # ... more years
 ```
 

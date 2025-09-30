@@ -1,11 +1,11 @@
 # Data Model
 
 ```typescript
-// Year data point - rate/trend/volume for one year
+// Year data point - rate/trend/value for one year
 interface YearData {
   rate: number;    // Current rate of change (unit/y)
   trend: number;   // Rate acceleration (unit/y²)  
-  volume: number;  // Cumulative total (unit)
+  value: number;  // Cumulative total (unit)
 }
 
 // Single environmental indicator (matches YAML structure exactly)

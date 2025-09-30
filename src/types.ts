@@ -3,11 +3,12 @@
  * Interfaces matching the YAML structure exactly
  */
 
-// Year data point - rate/trend/volume for one year
+
+// Year data point - rate/trend/value for one year
 export interface YearData {
-  rate: number;    // Current rate of change (unit/y)
-  trend: number;   // Rate acceleration (unit/y²)  
-  volume: number;  // Cumulative total (unit)
+  rate: number;    // Change rate (unit/year)
+  trend: number;   // Trend modifier (additive adjustment to rate)
+  value: number;  // Cumulative total (unit)
 }
 
 // Single environmental indicator (matches YAML structure exactly)
@@ -25,5 +26,17 @@ export interface ProjectionData {
   projections: Indicator[];        // Array of all indicators
 }
 
+
 // Type for milestone years
 export type MilestoneYear = 2025 | 2040 | 2055;
+
+
+// Trend data for each milestone year: f.Ex. MilestoneYearTrend['co2_emissions'].2025
+export interface MilestoneTrends {
+  [indicator_key: string]: {
+    2025: number;
+    2040: number;
+    2055: number;
+    unit: string;                  // e.g. 'Gt' or '000 km²'
+  }
+}

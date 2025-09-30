@@ -15,7 +15,7 @@
 
 **Step 2** — Forward calculation for t = 2025, 2026, ..., 2069:
 - Rate recurrence: `r_{t+1} = clip_k(r_t + τ_t)`
-- Volume recurrence: `v_{t+1} = v_t + r_t`
+- Value recurrence: `v_{t+1} = v_t + r_t`
 - Where `clip_k(x) = min(M_k, max(m_k, x))` if rate limits exist
 
 ## Key constraints

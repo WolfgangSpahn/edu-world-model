@@ -40,6 +40,21 @@ export interface Consequences {
   };
 }
 
+// CTrends
+export interface ConsequenceTrends {
+  [indicator: string]: { [year: number]: number };
+}
+
+// Configuration settings
+export interface Config {
+  enableCorrelationMatrix: boolean; // Toggle correlation matrix calculations on/off
+}
+
+// Global configuration
+export const config: Config = {
+  enableCorrelationMatrix: true // Default: correlation matrix enabled
+};
+
 // Years to fill - milestone year maps to range it affects
 export const years_map: YearRange = {
   2025: [2025, 2039], 
@@ -47,20 +62,78 @@ export const years_map: YearRange = {
   2055: [2055, 2069]
 };
 
-// Correlation matrix - encodes what influences whom
-export const correlation_matrix: CorrelationMatrix = {
-  'co2_emissions':     {'co2_emissions':  1.0, 'mining_waste_dump': -1.0, 'forests_area':  -1.0, 'soils_area':  -1.0},
-  'mining_waste_dump': {'co2_emissions':  0.0, 'mining_waste_dump':  1.0, 'forests_area':   0.0, 'soils_area':   0.0},
-  'forests_area':      {'co2_emissions':  0.0, 'mining_waste_dump':  0.0, 'forests_area':   1.0, 'soils_area':   0.0},
-  'soils_area':        {'co2_emissions':  0.0, 'mining_waste_dump':  0.0, 'forests_area':   0.0, 'soils_area':   1.0}
-};
+// Matrix conversion utility function
+function matrixToObject<T extends string>(
+  titles: readonly T[],
+  matrix: number[][]
+): Record<T, Record<T, number>> {
+  const result: Partial<Record<T, Record<T, number>>> = {};
+
+  titles.forEach((rowTitle, i) => {
+    const row: Partial<Record<T, number>> = {};
+    titles.forEach((colTitle, j) => {
+      row[colTitle] = matrix[i][j];
+    });
+    result[rowTitle] = row as Record<T, number>;
+  });
+
+  return result as Record<T, Record<T, number>>;
+}
+
+// Indicator names in matrix order
+const indicator_names = [
+  "co2_emissions",
+  "mining_waste_dump", 
+  "forests_area",
+  "soils_area",
+  "unemployment_rate",
+  "gini_index",
+  "happiness_index",
+  "life_expectancy"
+] as const;
+
+// Correlation matrix data (8x8) - encodes what influences whom
+const correlation_matrix_data = [
+  //co2  min  for  soi  une  gin  hap  lif
+  [ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // co2_emissions
+  [ 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // mining_waste_dump  
+  [-1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0], // forests_area
+  [-1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0], // soils_area
+  [ 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0], // unemployment_rate
+  [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0], // gini_index
+  [-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0], // happiness_index
+  [ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]  // life_expectancy
+];
+
+// Diagonal matrix data (8x8) - no cross-correlations
+const correlation_matrix_diag_data = [
+  //co2  min  for  soi  une  gin  hap  lif
+  [ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // co2_emissions
+  [ 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // mining_waste_dump  
+  [ 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0], // forests_area
+  [ 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0], // soils_area
+  [ 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0], // unemployment_rate
+  [ 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0], // gini_index
+  [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0], // happiness_index
+  [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]  // life_expectancy
+];
+
+// Convert matrix data to object format
+export const correlation_matrix: CorrelationMatrix = matrixToObject(indicator_names, correlation_matrix_data);
+export const correlation_matrix_diag: CorrelationMatrix = matrixToObject(indicator_names, correlation_matrix_diag_data);
+
+
 
 // Upper/lower limits for rates
 export const rate_limits: RateLimits = {
   'co2_emissions':     [    0, 100],
   'mining_waste_dump': [    0, 500], 
   'forests_area':      [ -200, 200],
-  'soils_area':        [ -100, 100]
+  'soils_area':        [ -100, 100],
+  'unemployment_rate': [    0,  50],
+  'gini_index':        [    0, 100],
+  'happiness_index':   [    0,  10],
+  'life_expectancy':   [   40, 100]
 };
 
 // Upper/lower limits for trends - to clamp user input
@@ -68,8 +141,31 @@ export const trend_limits: TrendLimits = {
   'co2_emissions':     [ -2.0,  2.0],
   'mining_waste_dump': [ -5.0,  5.0],
   'forests_area':      [-10.0, 10.0], 
-  'soils_area':        [ -5.0,  5.0]
+  'soils_area':        [ -5.0,  5.0],
+  'unemployment_rate': [ -5.0,  5.0],
+  'gini_index':        [ -5.0,  5.0],
+  'happiness_index':   [ -2.0,  2.0],
+  'life_expectancy':   [ -5.0,  5.0]
 };
+
+// consequence_ids: unemployment_rate, gini_index, happiness_index, life_expectancy
+
+// consequences_trends for MilestoneYears
+export const consequences_trends: ConsequenceTrends = {
+  'unemployment_rate': {2025: 0.5, 2040: 0.5, 2055: 0.5, 2070: 0.5},
+  'gini_index':        {2025: 0.2, 2040: 0.2, 2055: 0.2, 2070: 0.2},
+  'happiness_index':   {2025: -0.1, 2040: -0.1, 2055: -0.1, 2070: -0.1},
+  'life_expectancy':   {2025: 0.3, 2040: 0.3, 2055: 0.3, 2070: 0.3}
+};
+
+// consequences trend, rate and value at 2025
+export const consequences_2025 = {
+  'unemployment_rate': {trend: 0.5, rate: 5.0, value: 5.0},
+  'gini_index':        {trend: 0.2, rate: 62.0, value: 62.0},
+  'happiness_index':   {trend: -0.1, rate: 6.5, value: 6.5},
+  'life_expectancy':   {trend: 0.3, rate: 80.0, value: 80.0}
+};
+
 
 // Parameters to calculate consequences
 export const consequences: Consequences = {

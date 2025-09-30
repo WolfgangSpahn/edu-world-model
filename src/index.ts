@@ -7,8 +7,15 @@
 
 // Core functions
 export { loadData, cloneData } from './load-data.js';
-export { setTrend, getTrend, isValidTrend } from './set-trend.js';
-export { calculate, calculateIndicator, getProjection } from './calculate.js';
+export { setTrend, applyTrend, applyCorrelation, getTrendsFromData, printTrends, getTrend, isValidTrend, set_correlation_trend } from './set-trend.js';
+export { 
+  calculate, 
+  calculateIndicator, 
+  getProjection,
+  enableCorrelationMatrix,
+  disableCorrelationMatrix,
+  isCorrelationMatrixEnabled
+} from './calculate.js';
 
 // Types
 export type { 
@@ -24,7 +31,8 @@ export {
   correlation_matrix, 
   rate_limits, 
   trend_limits, 
-  consequences 
+  consequences,
+  config 
 } from './config.js';
 
 export type {
@@ -32,5 +40,6 @@ export type {
   CorrelationMatrix,
   RateLimits,
   TrendLimits,
-  Consequences
+  Consequences,
+  Config
 } from './config.js';

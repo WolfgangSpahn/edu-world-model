@@ -74,7 +74,7 @@ Task: "Indicator class with constructor and projection management in src/indicat
   - Step 1: Trend overwrite for year ranges (2025→2025-2039, etc.)
   - Step 2: Forward recurrence calculation with rate clamping
   - Rate recurrence: r_{t+1} = clip_k(r_t + τ_t)
-  - Volume recurrence: v_{t+1} = v_t + r_t
+  - Value recurrence: v_{t+1} = v_t + r_t
 - T020 (math verification test) must validate against known expected results
 
 ## Notes
