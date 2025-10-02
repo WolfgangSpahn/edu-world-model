@@ -2,8 +2,8 @@
  * Test for correlation matrix functionality
  */
 
-import { loadData, setTrend, applyTrend, applyCorrelation, calculate, getProjection } from '../src/index';
-import { MilestoneTrends } from '../src/types';
+import { loadData, setTrend, applyTrend, applyCorrelation, calculate } from '../src/index';
+import { MilestoneTrends, Indicator } from '../src/types';
 import { resolve } from 'path';
 
 describe('Correlation Matrix Functionality', () => {
@@ -18,7 +18,8 @@ describe('Correlation Matrix Functionality', () => {
     applyTrend(data, trends);
     calculate(data);
     
-    const result = getProjection(data, 'co2_emissions', 2026);
+    const resultIndicator = data.projections.find((p: Indicator) => p.indicator_key === 'co2_emissions');
+    const result = resultIndicator?.paths.data[2026];
     
     // Should get baseline calculation without correlation effects
     expect(result?.rate).toBeDefined();
@@ -27,7 +28,8 @@ describe('Correlation Matrix Functionality', () => {
   test('should apply correlation adjustments explicitly', () => {
     const data = loadData(dataPath);
     
-    const initialCO2 = getProjection(data, 'co2_emissions', 2025);
+    const initialCO2Indicator = data.projections.find((p: Indicator) => p.indicator_key === 'co2_emissions');
+    const initialCO2 = initialCO2Indicator?.paths.data[2025];
     
     // Create trends and set CO2 trend, then apply correlations explicitly
     const trends: MilestoneTrends = {};
@@ -36,7 +38,8 @@ describe('Correlation Matrix Functionality', () => {
     applyTrend(data, correlatedTrends);
     calculate(data);
     
-    const result = getProjection(data, 'co2_emissions', 2026);
+    const resultIndicator2 = data.projections.find((p: Indicator) => p.indicator_key === 'co2_emissions');
+    const result = resultIndicator2?.paths.data[2026];
     
     // With correlations applied, should get adjusted results
     expect(result?.rate).toBeGreaterThan(39);
@@ -53,7 +56,8 @@ describe('Correlation Matrix Functionality', () => {
     setTrend(trendsBaseline, 'forests_area', 2025, -1.0, '000 km²'); // Add another indicator for correlation
     applyTrend(dataBaseline, trendsBaseline);
     calculate(dataBaseline);
-    const resultBaseline = getProjection(dataBaseline, 'co2_emissions', 2026);
+    const resultBaselineIndicator = dataBaseline.projections.find((p: Indicator) => p.indicator_key === 'co2_emissions');
+    const resultBaseline = resultBaselineIndicator?.paths.data[2026];
     
     // Test WITH correlation adjustments
     const dataWithCorr = loadData(dataPath);
@@ -63,7 +67,8 @@ describe('Correlation Matrix Functionality', () => {
     const correlatedTrends = applyCorrelation(trendsWithCorr, undefined, 1.0); // Use stronger effect
     applyTrend(dataWithCorr, correlatedTrends);
     calculate(dataWithCorr);
-    const resultWithCorr = getProjection(dataWithCorr, 'co2_emissions', 2026);
+    const resultWithCorrIndicator = dataWithCorr.projections.find((p: Indicator) => p.indicator_key === 'co2_emissions');
+    const resultWithCorr = resultWithCorrIndicator?.paths.data[2026];
     
     // Results should be defined
     expect(resultBaseline?.rate).toBeDefined();

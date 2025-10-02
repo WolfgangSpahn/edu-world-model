@@ -40,16 +40,6 @@ export interface Consequences {
   };
 }
 
-// Configuration settings
-export interface Config {
-  enableCorrelationMatrix: boolean; // Toggle correlation matrix calculations on/off
-}
-
-// Global configuration
-export const config: Config = {
-  enableCorrelationMatrix: true // Default: correlation matrix enabled
-};
-
 // Years to fill - milestone year maps to range it affects
 export const years_map: YearRange = {
   2025: [2025, 2039], 

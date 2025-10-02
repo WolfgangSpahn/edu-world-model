@@ -11,25 +11,26 @@ World-Sim is a simple mathematical model that simulates environmental indicators
 - **Simple API**: Load data, set trends, calculate projections
 - **Type Safety**: Full TypeScript support with comprehensive type definitions
 - **Educational Focus**: Clean, understandable code for learning purposes
+- **Correlation Matrix**: Models cross-indicator influences
 - **Interactive REPL**: Built-in command-line interface for experimentation
 
 ## Installation
 
 ```bash
-npm install
-npm run build
+npm install world-sim
 ```
 
 ## Quick Start
 
 ```typescript
-import { loadData, setTrend, calculate, getProjection } from 'world-sim';
+import { loadData, setTrend, calculate } from 'world-sim';
 
 // Load projection data
 const data = loadData('./data/projections.yaml');
 
 // Get baseline projection for 2030
-const baseline = getProjection(data, 'co2_emissions', 2030);
+const co2Indicator = data.projections.find(p => p.indicator_key === 'co2_emissions');
+const baseline = co2Indicator?.paths.data[2030];
 console.log(`Baseline CO2 2030: ${baseline?.value.toFixed(2)} units`);
 
 // Apply a policy intervention (trend modification)
@@ -39,9 +40,16 @@ setTrend(data, 'co2_emissions', 2025, -1.0); // Reduce trend by 1.0
 calculate(data);
 
 // See the impact
-const updated = getProjection(data, 'co2_emissions', 2030);
+const co2IndicatorUpdated = data.projections.find(p => p.indicator_key === 'co2_emissions');
+const updated = co2IndicatorUpdated?.paths.data[2030];
 console.log(`After intervention: ${updated?.value.toFixed(2)} units`);
 ```
+
+## 📚 Documentation
+
+- **[🚀 Quick Start Guide](./docs/QUICK_START.md)** - Get started in 5 minutes
+- **[📖 User Guide](./docs/USER_GUIDE.md)** - Comprehensive tutorial with examples
+- **[🔧 API Reference](./docs/API_REFERENCE.md)** - Complete function documentation
 
 ## Correlation Matrix Demo
 
@@ -115,7 +123,7 @@ npm run repl
 This loads all functions and data into a Node.js REPL for experimentation:
 
 ```javascript
-🌍 > getProjection(data, 'co2_emissions', 2030)
+🌍 > data.projections.find(p => p.indicator_key === 'co2_emissions')?.paths.data[2030]
 🌍 > setTrend(data, 'co2_emissions', 2025, -0.5)
 🌍 > calculate(data)
 🌍 > data.projections.map(p => p.indicator_key)
@@ -128,8 +136,16 @@ This loads all functions and data into a Node.js REPL for experimentation:
 - **`loadData(filePath: string): ProjectionData`** - Load YAML projection data
 - **`setTrend(data: ProjectionData, indicator: string, year: number, trend: number): void`** - Modify trend for milestone years (2025, 2040, 2055)
 - **`calculate(data: ProjectionData): void`** - Recalculate all projections with current trends
-- **`getProjection(data: ProjectionData, indicator: string, year: number): YearData | null`** - Get data for specific indicator and year
 - **`getTrend(data: ProjectionData, indicator: string, year: number): number`** - Get trend value for specific year
+
+### Data Access
+
+To access projection data directly:
+```typescript
+// Get data for specific indicator and year
+const indicator = data.projections.find(p => p.indicator_key === 'co2_emissions');
+const yearData = indicator?.paths.data[2030]; // { rate, trend, value }
+```
 
 ### Correlation Matrix Functions
 

@@ -3,8 +3,8 @@
  * Tests that cross-indicator influences are applied correctly
  */
 
-import { loadData, setTrend, applyTrend, applyCorrelation, calculate, getProjection } from '../src/index';
-import { MilestoneTrends } from '../src/types';
+import { loadData, setTrend, applyTrend, applyCorrelation, calculate } from '../src/index';
+import { MilestoneTrends, Indicator } from '../src/types';
 import { resolve } from 'path';
 
 describe('Correlation Matrix Functionality', () => {
@@ -15,7 +15,8 @@ describe('Correlation Matrix Functionality', () => {
     
     // Get initial state BEFORE any changes
     const originalData = JSON.parse(JSON.stringify(data)); // Deep clone original data
-    const initialCO2 = getProjection(originalData, 'co2_emissions', 2026);
+    const initialCO2Indicator = originalData.projections.find((p: Indicator) => p.indicator_key === 'co2_emissions');
+    const initialCO2 = initialCO2Indicator?.paths.data[2026];
     
     // Create trends and set positive trend for CO2 emissions
     const trends: MilestoneTrends = {};
@@ -24,7 +25,8 @@ describe('Correlation Matrix Functionality', () => {
     calculate(data);
     
     // Check CO2 emissions after calculation
-    const updatedCO2 = getProjection(data, 'co2_emissions', 2026);
+    const updatedCO2Indicator = data.projections.find((p: Indicator) => p.indicator_key === 'co2_emissions');
+    const updatedCO2 = updatedCO2Indicator?.paths.data[2026];
     
     console.log('Initial CO2 rate (before trend):', initialCO2?.rate);
     console.log('Updated CO2 rate (after trend + correlations):', updatedCO2?.rate);
@@ -45,7 +47,8 @@ describe('Correlation Matrix Functionality', () => {
     
     // Get original state before modifications - use 2025 as the calculation year
     const originalData = JSON.parse(JSON.stringify(data));
-    const initialMining2025 = getProjection(originalData, 'mining_waste_dump', 2025);
+    const initialMining2025Indicator = originalData.projections.find((p: Indicator) => p.indicator_key === 'mining_waste_dump');
+    const initialMining2025 = initialMining2025Indicator?.paths.data[2025];
     
     // Mining waste dump correlation effects depend on correlation matrix configuration
     const trends: MilestoneTrends = {};
@@ -53,7 +56,8 @@ describe('Correlation Matrix Functionality', () => {
     applyTrend(data, trends);
     calculate(data);
     
-    const updatedMining2026 = getProjection(data, 'mining_waste_dump', 2026);
+    const updatedMining2026Indicator = data.projections.find((p: Indicator) => p.indicator_key === 'mining_waste_dump');
+    const updatedMining2026 = updatedMining2026Indicator?.paths.data[2026];
     
     // Should be affected by its trend
     expect(updatedMining2026?.rate).toBeGreaterThan(initialMining2025?.rate || 0);
@@ -65,7 +69,8 @@ describe('Correlation Matrix Functionality', () => {
     const data = loadData(dataPath);
     
     // Get current state
-    const current = getProjection(data, 'co2_emissions', 2025);
+    const currentIndicator = data.projections.find((p: Indicator) => p.indicator_key === 'co2_emissions');
+    const current = currentIndicator?.paths.data[2025];
     
     // Apply trend and correlations
     const trends: MilestoneTrends = {};
@@ -75,7 +80,8 @@ describe('Correlation Matrix Functionality', () => {
     calculate(data);
     
     // Check that the updated state follows value recurrence
-    const updated = getProjection(data, 'co2_emissions', 2026);
+    const updatedIndicator = data.projections.find((p: Indicator) => p.indicator_key === 'co2_emissions');
+    const updated = updatedIndicator?.paths.data[2026];
     
     // Value should still follow v_{t+1} = v_t + r_t
     // updated.value = current.value + current.rate

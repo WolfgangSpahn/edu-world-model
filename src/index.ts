@@ -9,13 +9,7 @@
 export { loadData, cloneData } from './load-data.js';
 export { setTrend, applyTrend, applyCorrelation, getTrendsFromData, printTrends, getTrend, isValidTrend, set_correlation_trend } from './set-trend.js';
 export { 
-  calculate, 
-  calculateIndicator, 
-  getProjection,
-  getProjectionWithInterpolation,
-  enableCorrelationMatrix,
-  disableCorrelationMatrix,
-  isCorrelationMatrixEnabled
+  calculate
 } from './calculate.js';
 
 // Types
@@ -31,8 +25,7 @@ export {
   years_map, 
   correlation_matrix, 
   rate_limits, 
-  trend_limits, 
-  config 
+  trend_limits
 } from './config.js';
 
 export type {
@@ -40,6 +33,5 @@ export type {
   CorrelationMatrix,
   RateLimits,
   TrendLimits,
-  Consequences,
-  Config
+  Consequences
 } from './config.js';

@@ -7,11 +7,11 @@
  * - Optional correlation matrix application for cross-indicator influences
  * - Forward projection calculations with trend application
  * 
- * Correlation Matrix (configurable):
+ * Correlation Matrix:
  * The correlation matrix defines how indicators influence each other during calculations.
  * Each entry correlation_matrix[target][source] specifies how much the source indicator's
  * rate affects the target indicator's rate in the next time step.
- * Can be enabled/disabled via config.enableCorrelationMatrix setting.
+ * Correlation effects are applied explicitly via applyCorrelation() function.
  * 
  * Mathematical Model with Optional Correlations:
  * 1. For each year t, collect current rates from all indicators
@@ -22,7 +22,7 @@
  */
 
 import { ProjectionData } from './types.js';
-import { rate_limits, correlation_matrix, config } from './config.js';
+import { rate_limits, correlation_matrix } from './config.js';
 
 /**
  * Clips a rate value to the configured bounds for an indicator
@@ -141,161 +141,4 @@ export function calculate(data: ProjectionData): void {
       nextYear.trend = getActiveTrend(indicatorData, year + 1);
     }
   }
-}
-
-/**
- * Calculates projections for a single indicator
- * Note: This function calculates in isolation and does NOT apply correlation influences
- * For full correlation-aware calculations, use the main calculate() function
- * 
- * @param data - ProjectionData object
- * @param indicatorKey - Key of the indicator to calculate
- * @throws Error if indicator not found
- */
-export function calculateIndicator(data: ProjectionData, indicatorKey: string): void {
-  const indicator = data.projections.find(p => p.indicator_key === indicatorKey);
-  if (!indicator) {
-    throw new Error(`Indicator '${indicatorKey}' not found`);
-  }
-
-  const indicatorData = indicator.paths.data;
-  
-  // Forward calculation from 2025 to 2069 (without correlation influences)
-  for (let year = 2025; year <= 2069; year++) {
-    const currentYear = indicatorData[year];
-    const nextYear = indicatorData[year + 1];
-    
-    if (!currentYear || !nextYear) {
-      continue; // Skip if year data is missing
-    }
-
-    // Rate recurrence: r_{t+1} = clip_k(r_t + τ_t)
-    // Note: No correlation influences applied in single-indicator calculation
-    const newRate = clipRate(
-      indicator.indicator_key, 
-      currentYear.rate + currentYear.trend
-    );
-    nextYear.rate = newRate;
-
-    // Value recurrence: v_{t+1} = v_t + r_t
-    nextYear.value = currentYear.value + currentYear.rate;
-  }
-}
-
-/**
- * Gets projection data for a specific year, with interpolation for missing years
- * If the exact year doesn't exist, interpolates between available data points
- * 
- * @param data - ProjectionData object containing all indicator data
- * @param indicatorKey - Key of the indicator to look up  
- * @param year - Year to get data for
- * @returns Year data or undefined if indicator not found
- */
-export function getProjectionWithInterpolation(
-  data: ProjectionData, 
-  indicatorKey: string, 
-  year: number
-) {
-  const indicator = data.projections.find(p => p.indicator_key === indicatorKey);
-  if (!indicator) {
-    return undefined;
-  }
-
-  const indicatorData = indicator.paths.data;
-  
-  // If exact year exists, return it
-  if (indicatorData[year]) {
-    return indicatorData[year];
-  }
-
-  // Find the nearest years with data for interpolation
-  const availableYears = Object.keys(indicatorData).map(Number).sort((a, b) => a - b);
-  
-  // Find years before and after the target year
-  let beforeYear: number | null = null;
-  let afterYear: number | null = null;
-  
-  for (const availableYear of availableYears) {
-    if (availableYear <= year) {
-      beforeYear = availableYear;
-    }
-    if (availableYear >= year && afterYear === null) {
-      afterYear = availableYear;
-      break;
-    }
-  }
-
-  // If we can't interpolate, return undefined
-  if (!beforeYear && !afterYear) {
-    return undefined;
-  }
-  
-  // If only one boundary exists, return that data
-  if (!beforeYear) {
-    return indicatorData[afterYear!];
-  }
-  if (!afterYear) {
-    return indicatorData[beforeYear];
-  }
-  
-  // If both years are the same, return that data
-  if (beforeYear === afterYear) {
-    return indicatorData[beforeYear];
-  }
-
-  // Interpolate between the two years
-  const beforeData = indicatorData[beforeYear];
-  const afterData = indicatorData[afterYear];
-  
-  const yearDiff = afterYear - beforeYear;
-  const targetYearOffset = year - beforeYear;
-  const interpolationRatio = targetYearOffset / yearDiff;
-
-  return {
-    rate: beforeData.rate + (afterData.rate - beforeData.rate) * interpolationRatio,
-    trend: beforeData.trend + (afterData.trend - beforeData.trend) * interpolationRatio,
-    value: beforeData.value + (afterData.value - beforeData.value) * interpolationRatio
-  };
-}
-
-/**
- * Gets projection data for a specific year (original function - exact match only)
- * 
- * @param data - ProjectionData object containing all indicator data
- * @param indicatorKey - Key of the indicator to look up  
- * @param year - Year to get data for
- * @returns Year data or undefined if not found
- */
-export function getProjection(
-  data: ProjectionData, 
-  indicatorKey: string, 
-  year: number
-) {
-  const indicator = data.projections.find(p => p.indicator_key === indicatorKey);
-  if (!indicator) {
-    return undefined;
-  }
-  return indicator.paths.data[year];
-}
-
-/**
- * Utility function to enable correlation matrix calculations
- */
-export function enableCorrelationMatrix(): void {
-  config.enableCorrelationMatrix = true;
-}
-
-/**
- * Utility function to disable correlation matrix calculations
- */
-export function disableCorrelationMatrix(): void {
-  config.enableCorrelationMatrix = false;
-}
-
-/**
- * Utility function to check if correlation matrix is enabled
- * @returns true if correlation matrix is enabled, false otherwise
- */
-export function isCorrelationMatrixEnabled(): boolean {
-  return config.enableCorrelationMatrix;
 }

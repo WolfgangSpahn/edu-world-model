@@ -8,8 +8,8 @@
  * 4. Compares the differences
  */
 
-import { loadData, setTrend, applyTrend, applyCorrelation, getTrendsFromData, printTrends, calculate, getProjection, getProjectionWithInterpolation, config } from './src/index.js';
-import { MilestoneTrends } from './src/types.js';
+import { loadData, setTrend, applyTrend, applyCorrelation, getTrendsFromData, printTrends, calculate } from './src/index.js';
+import { MilestoneTrends, Indicator } from './src/types.js';
 import { resolve } from 'path';
 
 // Helper function to format numbers for display
@@ -68,7 +68,8 @@ function printAllIndicatorsData(data: any, title: string) {
   
   for (const indicator of indicators) {
     for (const year of years) {
-      const projection = getProjection(data, indicator, year);
+      const indicatorProj = data.projections.find((p: Indicator) => p.indicator_key === indicator);
+      const projection = indicatorProj?.paths.data[year];
       console.log(
         indicator.padEnd(20) +
         year.toString().padEnd(8) +

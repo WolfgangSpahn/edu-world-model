@@ -7,7 +7,8 @@
  * 3. Shows how correlation matrix influences the final results
  */
 
-import { loadData, setTrend, applyTrend, calculate, getProjection } from './src/index.js';
+import { loadData, setTrend, applyTrend, calculate } from './src/index.js';
+import { Indicator } from './src/types.js';
 import { MilestoneTrends } from './src/types.js';
 import { resolve } from 'path';
 
@@ -27,7 +28,8 @@ function printIndicatorData(data: any, title: string) {
   
   for (const indicator of indicators) {
     for (const year of years) {
-      const projection = getProjection(data, indicator, year);
+      const indicatorProj = data.projections.find((p: Indicator) => p.indicator_key === indicator);
+      const projection = indicatorProj?.paths.data[year];
       console.log(
         indicator.padEnd(20) + 
         year.toString().padEnd(8) + 
