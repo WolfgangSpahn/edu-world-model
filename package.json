@@ -1,5 +1,5 @@
 {
-  "name": "world-sim",
+  "name": "edu-world-model",
   "version": "1.0.0",
   "description": "Educational TypeScript package for world simulation modeling with environmental indicators",
   "main": "dist/index.js",

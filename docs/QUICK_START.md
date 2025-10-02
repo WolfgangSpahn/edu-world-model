@@ -1,17 +1,17 @@
-# World-Sim Quick Start Guide
+# Edu-World-Model Quick Start Guide
 
-Get started with World-Sim in 5 minutes! This guide will walk you through the basics of using the package.
+Get started with Edu-World-Model in 5 minutes! This guide will walk you through the basics of using the package.
 
 ## Installation
 
 ```bash
-npm install world-sim
+npm install edu-world-model
 ```
 
 ## 1. Basic Usage - Your First Simulation
 
 ```typescript
-import { loadData, setTrend, calculate } from 'world-sim';
+import { loadData, setTrend, calculate } from 'edu-world-model';
 
 // Load the data
 const data = loadData('./data/projections.yaml');
@@ -43,7 +43,7 @@ console.log(`✅ Reduction: ${(baseline2030!.value - withPolicy2030!.value).toFi
 ## 2. Working with Multiple Indicators
 
 ```typescript
-import { loadData, getTrendsFromData, setTrend, applyTrend, calculate, printTrends } from 'world-sim';
+import { loadData, getTrendsFromData, setTrend, applyTrend, calculate, printTrends } from 'edu-world-model';
 
 const data = loadData('./data/projections.yaml');
 
@@ -76,7 +76,7 @@ for (const indicator of indicators) {
 ## 3. Comparing Scenarios
 
 ```typescript
-import { loadData, setTrend, calculate } from 'world-sim';
+import { loadData, setTrend, calculate } from 'edu-world-model';
 
 // Scenario 1: Business as usual
 const businessAsUsual = loadData('./data/projections.yaml');
@@ -110,7 +110,7 @@ console.log(`🟢 Aggressive action:  ${agg2050?.value.toFixed(1)} Gt (${((agg20
 Real-world environmental and economic systems are interconnected. The correlation matrix models how changes in one indicator affect others.
 
 ```typescript
-import { loadData, getTrendsFromData, setTrend, applyCorrelation, applyTrend, calculate } from 'world-sim';
+import { loadData, getTrendsFromData, setTrend, applyCorrelation, applyTrend, calculate } from 'edu-world-model';
 
 const data = loadData('./data/projections.yaml');
 const trends = getTrendsFromData(data);
@@ -145,7 +145,7 @@ for (const indicator of indicatorsToCheck) {
 ## 5. Understanding the Data Structure
 
 ```typescript
-import { loadData } from 'world-sim';
+import { loadData } from 'edu-world-model';
 
 const data = loadData('./data/projections.yaml');
 

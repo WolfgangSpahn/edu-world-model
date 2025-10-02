@@ -1,28 +1,9 @@
-# Feature Specification: Explicit Correlation Matrix Application
+# Feature Specification: Correlation Matrix Application in Data Updates
 
 **Feature Branch**: `002-add-an-update`  
 **Created**: September 29, 2025  
-**Updated**: October 2, 2025  
-**Status**: Implemented ✅  
+**Status**: Draft  
 **Input**: User description: "add an update of the data by applying the correlation matrix according to this example"
-
-## Implementation Summary *(added Oct 2)*
-This feature has been successfully implemented with the following key architectural improvements:
-
-### ✅ **Explicit Correlation Pattern**
-- **Before**: Global configuration flag (`config.enableCorrelationMatrix`)
-- **After**: Explicit function calls (`applyCorrelation(trends)`)
-- **Benefits**: Clear separation between baseline calculations and correlation effects
-
-### ✅ **Simplified Data Access**  
-- **Removed**: `getProjection()` and `getProjectionWithInterpolation()` functions
-- **Replaced with**: Direct data structure access
-- **Pattern**: `data.projections.find(p => p.indicator_key === 'name')?.paths.data[year]`
-
-### ✅ **Functional Programming Approach**
-- `applyCorrelation()` now returns new modified trends instead of mutating input
-- Pure functions with no side effects
-- Pattern: `const correlatedTrends = applyCorrelation(trends)`
 
 ## Execution Flow (main)
 ```
@@ -58,68 +39,35 @@ This feature has been successfully implemented with the following key architectu
 ## User Scenarios & Testing *(mandatory)*
 
 ### Primary User Story
-As a world simulation user, I want to apply correlation effects explicitly to my trend modifications so that I can clearly distinguish between baseline mathematical projections and correlation-influenced results.
+As a world simulation user, when I modify trends for one indicator (e.g., increase CO2 emissions), I want the system to automatically apply cross-indicator influences based on the correlation matrix so that related indicators (e.g., forests, soils) are realistically affected by my changes.
 
-### Updated Implementation Pattern *(Oct 2, 2025)*
-```typescript
-// 1. Load data and get baseline trends
-const data = loadData('./data/projections.yaml');
-const trends = getTrendsFromData(data);
+### Acceptance Scenarios
+1. **Given** CO2 emissions trend is increased by user, **When** system calculates future projections, **Then** forests area and soils area should decrease according to the negative correlation coefficients
+2. **Given** multiple indicators have trends applied, **When** system processes calculations, **Then** each indicator's rate should be influenced by all other indicators according to their correlation values
+3. **Given** correlation matrix defines specific influence factors, **When** calculations run, **Then** the mathematical model should apply these influences during the rate recurrence step
 
-// 2. Modify trends as needed
-setTrend(trends, 'co2_emissions', 2025, -1.0, 'Gt');
-
-// 3. EXPLICIT CHOICE: Apply correlations or not
-// Option A: Baseline calculation (no correlations)
-applyTrend(data, trends);
-calculate(data);
-
-// Option B: Correlation-adjusted calculation  
-const correlatedTrends = applyCorrelation(trends);
-applyTrend(data, correlatedTrends);
-calculate(data);
-
-// 4. Access results directly
-const co2Data = data.projections.find(p => p.indicator_key === 'co2_emissions');
-const result2026 = co2Data?.paths.data[2026]; // { rate, trend, value }
-```
-
-### Acceptance Scenarios *(updated)*
-1. **Given** CO2 emissions trend is modified, **When** user applies `applyCorrelation(trends)`, **Then** related indicators should be influenced according to correlation matrix
-2. **Given** user wants baseline projection, **When** user skips `applyCorrelation()`, **Then** calculation should use pure mathematical model without cross-indicator influences  
-3. **Given** correlation matrix defines influence factors, **When** `applyCorrelation()` is called, **Then** trends should be adjusted by the specified correlation coefficients
-4. **Given** user needs data access, **When** using direct data structure access, **Then** `getProjection()` functions are no longer needed
-
-### Edge Cases *(updated)*
-- Correlation influences respect rate limits and apply clamping when needed
-- Missing indicators in correlation matrix are safely handled
-- `applyCorrelation()` returns new trends object without modifying input
+### Edge Cases
+- What happens when correlation influences would push rates beyond defined rate limits?
+- How does system handle indicators with zero correlation coefficients?
+- What occurs when correlation matrix is incomplete or missing indicators?
 
 ## Requirements *(mandatory)*
 
-### Functional Requirements *(updated Oct 2)*
-- **FR-001**: ✅ System MUST provide explicit correlation application via `applyCorrelation()` function
-- **FR-002**: ✅ System MUST allow baseline calculations without correlation effects  
-- **FR-003**: ✅ System MUST respect existing rate limits when applying correlation influences
-- **FR-004**: ✅ System MUST return new trends object from `applyCorrelation()` without modifying input
-- **FR-005**: ✅ System MUST provide direct data structure access without wrapper functions
-- **FR-006**: ✅ System MUST maintain separation of concerns between baseline math and correlation effects
-- **FR-007**: ✅ System MUST preserve existing value recurrence calculations
-- **FR-008**: ✅ System MUST eliminate need for global configuration flags
+### Functional Requirements
+- **FR-001**: System MUST apply correlation matrix influences during indicator calculations
+- **FR-002**: System MUST incorporate cross-indicator influences into the rate recurrence step of the mathematical model
+- **FR-003**: System MUST respect existing rate limits when applying correlation influences
+- **FR-004**: System MUST process correlation influences for all indicators in the matrix
+- **FR-005**: System MUST maintain mathematical consistency with the provided Python example model
+- **FR-006**: System MUST apply correlation influences automatically without requiring user intervention
+- **FR-007**: System MUST preserve the existing value recurrence calculations while adding correlation effects
 
-### Implementation Requirements *(completed)*
-- **IR-001**: ✅ Remove `getProjection()` and `getProjectionWithInterpolation()` functions
-- **IR-002**: ✅ Update all demos and tests to use direct data access  
-- **IR-003**: ✅ Modify `applyCorrelation()` to return `MilestoneTrends` instead of `void`
-- **IR-004**: ✅ Update README.md with new patterns and examples
-- **IR-005**: ✅ Ensure all tests pass with new architecture
-
-### Key Entities *(updated)*
-- **MilestoneTrends**: Object containing trend values for milestone years (2025, 2040, 2055)
-- **Correlation Matrix**: 13x13 matrix defining cross-indicator influence coefficients  
-- **Direct Data Access**: Pattern `data.projections.find().paths.data[year]` for accessing year data
-- **Functional Correlation**: `applyCorrelation(trends): MilestoneTrends` returns modified trends
-- **Baseline vs Correlation**: Clear distinction between pure mathematical projection and correlation-influenced results
+### Key Entities *(include if feature involves data)*
+- **Correlation Matrix**: Maps each indicator to its influence coefficients on other indicators (-1.0 to 1.0 range)
+- **Indicator**: Has rate, value, and trend values that can influence and be influenced by other indicators
+- **Rate**: The change value per time period that gets modified by correlation influences
+- **Value**: The accumulated value that results from rate applications
+- **Influence Factor**: The correlation coefficient that determines how much one indicator affects another
 
 ---
 
