@@ -17,13 +17,13 @@ World-Sim is a simple mathematical model that simulates environmental indicators
 ## Installation
 
 ```bash
-npm install world-sim
+npm install edu-world-model
 ```
 
 ## Quick Start
 
 ```typescript
-import { loadData, setTrend, calculate } from 'world-sim';
+import { loadData, setTrend, calculate } from 'edu-world-model';
 
 // Load projection data
 const data = loadData('./data/projections.yaml');
@@ -59,7 +59,7 @@ This example shows how to use baseline calculations vs. correlation-adjusted pro
 import { 
   loadData, setTrend, applyTrend, applyCorrelation, 
   getTrendsFromData, printTrends, calculate 
-} from 'world-sim';
+} from 'edu-world-model';
 
 function main() {
   const dataPath = resolve('./data/projections.yaml');

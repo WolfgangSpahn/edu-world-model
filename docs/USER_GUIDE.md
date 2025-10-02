@@ -19,13 +19,13 @@ A comprehensive guide to using the World-Sim TypeScript package for educational 
 ### Installation
 
 ```bash
-npm install world-sim
+npm install edu-world-model
 ```
 
 ### Basic Usage
 
 ```typescript
-import { loadData, setTrend, calculate } from 'world-sim';
+import { loadData, setTrend, calculate } from 'edu-world-model';
 
 // 1. Load projection data
 const data = loadData('./data/projections.yaml');
@@ -319,7 +319,7 @@ console.log(`With correlations: ${correlatedCO2?.value} Gt`);
 ### Example 1: Simple CO2 Reduction
 
 ```typescript
-import { loadData, setTrend, calculate } from 'world-sim';
+import { loadData, setTrend, calculate } from 'edu-world-model';
 
 async function co2ReductionScenario() {
   // Load baseline data
@@ -349,7 +349,7 @@ async function co2ReductionScenario() {
 ### Example 2: Multi-Indicator Environmental Policy
 
 ```typescript
-import { loadData, getTrendsFromData, setTrend, applyTrend, applyCorrelation, calculate } from 'world-sim';
+import { loadData, getTrendsFromData, setTrend, applyTrend, applyCorrelation, calculate } from 'edu-world-model';
 
 async function environmentalPolicy() {
   const data = loadData('./data/projections.yaml');
@@ -388,7 +388,7 @@ async function environmentalPolicy() {
 ### Example 3: Economic vs Environmental Trade-offs
 
 ```typescript
-import { loadData, getTrendsFromData, setTrend, applyTrend, calculate } from 'world-sim';
+import { loadData, getTrendsFromData, setTrend, applyTrend, calculate } from 'edu-world-model';
 
 async function economicVsEnvironmental() {
   // Scenario 1: Economic Growth Focus

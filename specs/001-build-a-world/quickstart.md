@@ -6,7 +6,7 @@
 
 ```bash
 
-npm install world-sim## Install## Installation
+npm install edu-world-model## Install## Installation
 
 ```
 
@@ -14,11 +14,11 @@ npm install world-sim## Install## Installation
 
 ## Use It (TypeScript)
 
-```typescriptnpm install world-sim```bash
+```typescriptnpm install edu-world-model```bash
 
-import { loadData, setTrend, calculate } from 'world-sim';
+import { loadData, setTrend, calculate } from 'edu-world-model';
 
-```npm install world-sim
+```npm install edu-world-model
 
 // 1. Load YAML data with types
 
@@ -34,7 +34,7 @@ setTrend(data, 'co2_emissions', 2025, 0.5);
 
 // 3. Recalculate future values
 
-calculate(data);const { loadData, setTrend, calculate } = require('world-sim');
+calculate(data);const { loadData, setTrend, calculate } = require('edu-world-model');
 
 
 
@@ -48,7 +48,7 @@ console.log(data.projections[0].paths.data[2030]);
 
 That's it! 4 lines with full type safety.const data = loadData('./data/projections.yaml');```javascript
 
-import { WorldSimulation } from 'world-sim';
+import { WorldSimulation } from 'edu-world-model';
 
 // 2. Modify trends  import path from 'path';
 

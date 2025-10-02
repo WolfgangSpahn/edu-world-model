@@ -1,7 +1,7 @@
-// REPL startup script for world-sim
+// REPL startup script for edu-world-model
 import repl from 'repl';
 
-console.log('🌍 Loading world-sim library...');
+console.log('🌍 Loading edu-world-model library...');
 
 // Import the library
 const { loadData, setTrend, calculate, getProjection, getTrend } = await import('./dist/index.js');

@@ -48,7 +48,7 @@ Task: "Copy projections.yaml to data/ directory for testing"
 ### Contract Tests Phase (can run together)
 ```bash
 # T006-T017 can run in parallel (different test files):
-Task: "Contract test WorldSimulation constructor in tests/contract/world-simulation.test.js"
+Task: "Contract test WorldSimulation constructor in tests/contract/edu-world-modelulation.test.js"
 Task: "Contract test Indicator constructor and properties in tests/contract/indicator.test.js"  
 Task: "Contract test Projection constructor and properties in tests/contract/projection.test.js"
 # ... etc for all contract tests
