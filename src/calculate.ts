@@ -41,11 +41,14 @@ function clipRate(indicatorKey: string, rate: number): number {
   return Math.min(maxRate, Math.max(minRate, rate));
 }
 
-
 /**
- * Recalculates future projections for all indicators using the mathematical model
+ * Recalculates future projections for all indicators using milestone-based trends
  * 
- * Mathematical Model:
+ * Mathematical Model with Milestone Trend Switching:
+ * - 2025-2039: Use trend from 2025 milestone (constant)
+ * - 2040-2054: Use trend from 2040 milestone (constant) 
+ * - 2055+: Use trend from 2055 milestone (constant)
+ * 
  * Step 1: Trends are already applied by setTrend() function
  * Step 2: Forward calculation for t = 2025, 2026, ..., 2069:
  *   - Rate recurrence: r_{t+1} = clip_k(r_t + τ_t + correlation_influences?)
@@ -64,6 +67,20 @@ export function calculate(data: ProjectionData): void {
   for (const indicator of data.projections) {
     if (!indicator.paths || !indicator.paths.data) {
       throw new Error(`Invalid indicator structure: ${indicator.indicator_key}`);
+    }
+  }
+
+  // Define milestone years where trends switch
+  const milestoneYears = [2025, 2040, 2055];
+  
+  // Helper function to get the active trend for a given year
+  function getActiveTrend(indicatorData: any, year: number): number {
+    if (year < 2040) {
+      return indicatorData['2025']?.trend || 0;
+    } else if (year < 2055) {
+      return indicatorData['2040']?.trend || 0;
+    } else {
+      return indicatorData['2055']?.trend || 0;
     }
   }
 
@@ -89,17 +106,27 @@ export function calculate(data: ProjectionData): void {
     for (const indicator of data.projections) {
       const indicatorData = indicator.paths.data;
       const currentYear = indicatorData[year];
-      const nextYear = indicatorData[year + 1];
       
-      if (!currentYear || !nextYear) {
-        continue; // Skip if year data is missing
+      if (!currentYear) {
+        continue; // Skip if current year data is missing
       }
 
-      // Rate recurrence with optional correlation influences: r_{t+1} = clip_k(r_t + τ_t + correlation_influences?)
-      const basicRateChange = currentYear.rate + currentYear.trend;
-      let correlationInfluences = 0;
+      // Create next year data if it doesn't exist
+      if (!indicatorData[year + 1]) {
+        indicatorData[year + 1] = {
+          rate: 0,
+          trend: 0,
+          value: 0
+        };
+      }
       
+      const nextYear = indicatorData[year + 1];
 
+      // Get the active trend for the current year (milestone-based)
+      const activeTrend = getActiveTrend(indicatorData, year);
+
+      // Rate recurrence: r_{t+1} = clip_k(r_t + τ_t)
+      const basicRateChange = currentYear.rate + activeTrend;
       
       const newRate = clipRate(
         indicator.indicator_key, 
@@ -107,8 +134,11 @@ export function calculate(data: ProjectionData): void {
       );
       nextYear.rate = newRate;
 
-      // Value recurrence: v_{t+1} = v_t + r_t
+      // Value recurrence: v_{t+1} = v_t + r_t  
       nextYear.value = currentYear.value + currentYear.rate;
+      
+      // Set trend based on milestone switching logic
+      nextYear.trend = getActiveTrend(indicatorData, year + 1);
     }
   }
 }
@@ -153,10 +183,86 @@ export function calculateIndicator(data: ProjectionData, indicatorKey: string): 
 }
 
 /**
- * Gets projection values for a specific indicator and year
+ * Gets projection data for a specific year, with interpolation for missing years
+ * If the exact year doesn't exist, interpolates between available data points
  * 
- * @param data - ProjectionData object
- * @param indicatorKey - Key of the indicator
+ * @param data - ProjectionData object containing all indicator data
+ * @param indicatorKey - Key of the indicator to look up  
+ * @param year - Year to get data for
+ * @returns Year data or undefined if indicator not found
+ */
+export function getProjectionWithInterpolation(
+  data: ProjectionData, 
+  indicatorKey: string, 
+  year: number
+) {
+  const indicator = data.projections.find(p => p.indicator_key === indicatorKey);
+  if (!indicator) {
+    return undefined;
+  }
+
+  const indicatorData = indicator.paths.data;
+  
+  // If exact year exists, return it
+  if (indicatorData[year]) {
+    return indicatorData[year];
+  }
+
+  // Find the nearest years with data for interpolation
+  const availableYears = Object.keys(indicatorData).map(Number).sort((a, b) => a - b);
+  
+  // Find years before and after the target year
+  let beforeYear: number | null = null;
+  let afterYear: number | null = null;
+  
+  for (const availableYear of availableYears) {
+    if (availableYear <= year) {
+      beforeYear = availableYear;
+    }
+    if (availableYear >= year && afterYear === null) {
+      afterYear = availableYear;
+      break;
+    }
+  }
+
+  // If we can't interpolate, return undefined
+  if (!beforeYear && !afterYear) {
+    return undefined;
+  }
+  
+  // If only one boundary exists, return that data
+  if (!beforeYear) {
+    return indicatorData[afterYear!];
+  }
+  if (!afterYear) {
+    return indicatorData[beforeYear];
+  }
+  
+  // If both years are the same, return that data
+  if (beforeYear === afterYear) {
+    return indicatorData[beforeYear];
+  }
+
+  // Interpolate between the two years
+  const beforeData = indicatorData[beforeYear];
+  const afterData = indicatorData[afterYear];
+  
+  const yearDiff = afterYear - beforeYear;
+  const targetYearOffset = year - beforeYear;
+  const interpolationRatio = targetYearOffset / yearDiff;
+
+  return {
+    rate: beforeData.rate + (afterData.rate - beforeData.rate) * interpolationRatio,
+    trend: beforeData.trend + (afterData.trend - beforeData.trend) * interpolationRatio,
+    value: beforeData.value + (afterData.value - beforeData.value) * interpolationRatio
+  };
+}
+
+/**
+ * Gets projection data for a specific year (original function - exact match only)
+ * 
+ * @param data - ProjectionData object containing all indicator data
+ * @param indicatorKey - Key of the indicator to look up  
  * @param year - Year to get data for
  * @returns Year data or undefined if not found
  */

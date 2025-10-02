@@ -5,6 +5,7 @@
 
 import { ProjectionData, MilestoneYear, MilestoneTrends } from './types.js';
 import { years_map, trend_limits, correlation_matrix } from './config.js';
+import lodash from 'lodash';
 
 
 
@@ -226,19 +227,23 @@ export function set_correlation_trend(
 
 /**
  * Applies correlation-based adjustments to trends in a MilestoneYearTrend object
- * This function modifies the trends based on correlation influences without requiring ProjectionData
+ * This function returns a new trends object with correlation influences applied
  * 
- * @param trends - MilestoneYearTrend object to modify
+ * @param trends - MilestoneYearTrend object to use as base
  * @param correlationMatrix - Correlation matrix to use for influences
  * @param strengthFactor - Multiplier for correlation influences (default: 0.1)
+ * @returns New MilestoneTrends object with correlation adjustments applied
  */
 export function applyCorrelation(
   trends: MilestoneTrends,
   correlationMatrix: any = correlation_matrix,
   strengthFactor: number = 0.1
-): void {
+): MilestoneTrends {
+  // Create a deep copy of the trends to avoid modifying the original
+  const adjustedTrends = lodash.cloneDeep(trends);
+  
   // Process each indicator in the trends object
-  for (const indicatorKey of Object.keys(trends)) {
+  for (const indicatorKey of Object.keys(adjustedTrends)) {
     // Get correlation influences from other indicators
     const correlations = correlationMatrix[indicatorKey] || {};
     let influenceSum = 0;
@@ -260,7 +265,7 @@ export function applyCorrelation(
     const milestoneYears: MilestoneYear[] = [2025, 2040, 2055];
     
     for (const year of milestoneYears) {
-      const currentTrend = trends[indicatorKey][year];
+      const currentTrend = adjustedTrends[indicatorKey][year];
       if (currentTrend === undefined) {
         continue; // Skip if no trend is set for this year
       }
@@ -273,12 +278,14 @@ export function applyCorrelation(
       if (!isValidTrend(indicatorKey, adjustedTrend)) {
         const [minTrend, maxTrend] = trend_limits[indicatorKey] || [-Infinity, Infinity];
         const clampedTrend = Math.min(maxTrend, Math.max(minTrend, adjustedTrend));
-        trends[indicatorKey][year] = clampedTrend;
+        adjustedTrends[indicatorKey][year] = clampedTrend;
       } else {
-        trends[indicatorKey][year] = adjustedTrend;
+        adjustedTrends[indicatorKey][year] = adjustedTrend;
       }
     }
   }
+  
+  return adjustedTrends;
 }
 
 /**
@@ -295,7 +302,7 @@ export function getTrendsFromData(data: ProjectionData): MilestoneTrends {
   for (const indicator of data.projections) {
     const indicatorKey = indicator.indicator_key;
     
-    // Initialize the indicator in trends object
+    // Initialize the indicator in trends object with zeros
     trends[indicatorKey] = {
       2025: 0,
       2040: 0,
@@ -303,7 +310,7 @@ export function getTrendsFromData(data: ProjectionData): MilestoneTrends {
       unit: indicator.paths.unit
     };
     
-    // Extract trends for milestone years
+    // Extract actual trends for milestone years from the data
     const milestoneYears: MilestoneYear[] = [2025, 2040, 2055];
     
     for (const year of milestoneYears) {

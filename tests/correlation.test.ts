@@ -70,8 +70,8 @@ describe('Correlation Matrix Functionality', () => {
     // Apply trend and correlations
     const trends: MilestoneTrends = {};
     setTrend(trends, 'co2_emissions', 2025, -1.0, 'Gt');
-    applyCorrelation(trends);
-    applyTrend(data, trends);
+    const correlatedTrends = applyCorrelation(trends);
+    applyTrend(data, correlatedTrends);
     calculate(data);
     
     // Check that the updated state follows value recurrence

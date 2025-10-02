@@ -40,11 +40,6 @@ export interface Consequences {
   };
 }
 
-// CTrends
-export interface ConsequenceTrends {
-  [indicator: string]: { [year: number]: number };
-}
-
 // Configuration settings
 export interface Config {
   enableCorrelationMatrix: boolean; // Toggle correlation matrix calculations on/off
@@ -89,33 +84,48 @@ const indicator_names = [
   "unemployment_rate",
   "gini_index",
   "happiness_index",
-  "life_expectancy"
+  "life_expectancy",
+  "gdp_per_cap",
+  "debt_per_cap",
+  "wealth_per_cap",
+  "population",
+  "global_reaction_fund"
 ] as const;
 
-// Correlation matrix data (8x8) - encodes what influences whom
+// Correlation matrix data (13x13) - encodes what influences whom
 const correlation_matrix_data = [
-  //co2  min  for  soi  une  gin  hap  lif
-  [ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // co2_emissions
-  [ 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // mining_waste_dump  
-  [-1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0], // forests_area
-  [-1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0], // soils_area
-  [ 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0], // unemployment_rate
-  [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0], // gini_index
-  [-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0], // happiness_index
-  [ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]  // life_expectancy
+  //co2  min  for  soi  une  gin  hap  lif  gdp  deb  wea  pop  grf
+  [ 1.0, 0.0,-1.0,-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // co2_emissions
+  [ 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // mining_waste_dump  
+  [-1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // forests_area
+  [-1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // soils_area
+  [ 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // unemployment_rate
+  [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // gini_index
+  [-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // happiness_index
+  [-0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0], // life_expectancy
+  [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0], // gdp_per_cap
+  [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0], // debt_per_cap
+  [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0], // wealth_per_cap
+  [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0], // population
+  [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]  // global_reaction_fund
 ];
 
-// Diagonal matrix data (8x8) - no cross-correlations
+// Diagonal matrix data (13x13) - no cross-correlations
 const correlation_matrix_diag_data = [
-  //co2  min  for  soi  une  gin  hap  lif
-  [ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // co2_emissions
-  [ 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // mining_waste_dump  
-  [ 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0], // forests_area
-  [ 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0], // soils_area
-  [ 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0], // unemployment_rate
-  [ 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0], // gini_index
-  [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0], // happiness_index
-  [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]  // life_expectancy
+  //co2  min  for  soi  une  gin  hap  lif  gdp  deb  wea  pop  grf
+  [ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // co2_emissions
+  [ 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // mining_waste_dump  
+  [ 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // forests_area
+  [ 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // soils_area
+  [ 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // unemployment_rate
+  [ 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // gini_index
+  [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], // happiness_index
+  [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0], // life_expectancy
+  [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0], // gdp_per_cap
+  [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0], // debt_per_cap
+  [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0], // wealth_per_cap
+  [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0], // population
+  [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]  // global_reaction_fund
 ];
 
 // Convert matrix data to object format
@@ -126,80 +136,35 @@ export const correlation_matrix_diag: CorrelationMatrix = matrixToObject(indicat
 
 // Upper/lower limits for rates
 export const rate_limits: RateLimits = {
-  'co2_emissions':     [    0, 100],
-  'mining_waste_dump': [    0, 500], 
-  'forests_area':      [ -200, 200],
-  'soils_area':        [ -100, 100],
-  'unemployment_rate': [    0,  50],
-  'gini_index':        [    0, 100],
-  'happiness_index':   [    0,  10],
-  'life_expectancy':   [   40, 100]
+  'co2_emissions':        [    0, 100],
+  'mining_waste_dump':    [    0, 500], 
+  'forests_area':         [ -200, 200],
+  'soils_area':           [ -100, 100],
+  'unemployment_rate':    [    0,  50],
+  'gini_index':           [    0, 100],
+  'happiness_index':      [    0,  10],
+  'life_expectancy':      [   -2.0,  2.0],
+  'gdp_per_cap':          [    0, 200000],
+  'debt_per_cap':         [    0, 500000],
+  'wealth_per_cap':       [    0, 1000000],
+  'population':           [    0,  20],
+  'global_reaction_fund': [    0, 10000]
 };
 
 // Upper/lower limits for trends - to clamp user input
 export const trend_limits: TrendLimits = {
-  'co2_emissions':     [ -2.0,  2.0],
-  'mining_waste_dump': [ -5.0,  5.0],
-  'forests_area':      [-10.0, 10.0], 
-  'soils_area':        [ -5.0,  5.0],
-  'unemployment_rate': [ -5.0,  5.0],
-  'gini_index':        [ -5.0,  5.0],
-  'happiness_index':   [ -2.0,  2.0],
-  'life_expectancy':   [ -5.0,  5.0]
+  'co2_emissions':        [ -2.0,  2.0],
+  'mining_waste_dump':    [ -5.0,  5.0],
+  'forests_area':         [-10.0, 10.0], 
+  'soils_area':           [ -5.0,  5.0],
+  'unemployment_rate':    [ -5.0,  5.0],
+  'gini_index':           [ -5.0,  5.0],
+  'happiness_index':      [ -2.0,  2.0],
+  'life_expectancy':      [ -5.0,  5.0],
+  'gdp_per_cap':          [-10.0, 10.0],
+  'debt_per_cap':         [-10.0, 10.0],
+  'wealth_per_cap':       [-20.0, 20.0],
+  'population':           [ -1.0,  1.0],
+  'global_reaction_fund': [-50.0, 50.0]
 };
 
-// consequence_ids: unemployment_rate, gini_index, happiness_index, life_expectancy
-
-// consequences_trends for MilestoneYears
-export const consequences_trends: ConsequenceTrends = {
-  'unemployment_rate': {2025: 0.5, 2040: 0.5, 2055: 0.5, 2070: 0.5},
-  'gini_index':        {2025: 0.2, 2040: 0.2, 2055: 0.2, 2070: 0.2},
-  'happiness_index':   {2025: -0.1, 2040: -0.1, 2055: -0.1, 2070: -0.1},
-  'life_expectancy':   {2025: 0.3, 2040: 0.3, 2055: 0.3, 2070: 0.3}
-};
-
-// consequences trend, rate and value at 2025
-export const consequences_2025 = {
-  'unemployment_rate': {trend: 0.5, rate: 5.0, value: 5.0},
-  'gini_index':        {trend: 0.2, rate: 62.0, value: 62.0},
-  'happiness_index':   {trend: -0.1, rate: 6.5, value: 6.5},
-  'life_expectancy':   {trend: 0.3, rate: 80.0, value: 80.0}
-};
-
-
-// Parameters to calculate consequences
-export const consequences: Consequences = {
-  data: {
-    'unemployment_rate': {2025: 5.0, 2040: 6, 2055: 12, 2070: 17},
-    'gini_index': {2025: 62.0, 2040: 62.0, 2055: 64.0, 2070: 66.0},
-    'happiness_index': {2025: 6.5, 2040: 6.5, 2055: 5.5, 2070: 5.0},
-    'life_expectancy': {2025: 80.0, 2040: 79.0, 2055: 75.0, 2070: 72.0}
-  },
-  scale: {
-    'unemployment_rate': { 
-      sign: -1, 
-      value: -10.0,
-      // Color function for visual representation
-      color_fct: (v: number) => v < 6 ? 'green' : v < 12 ? 'orange' : 'red',
-      limit: [5, 25]
-    },
-    'gini_index': { 
-      sign: 1, 
-      value: -0.5,
-      color_fct: (v: number) => v < 40 ? 'green' : v < 63 ? 'orange' : 'red',
-      limit: [20, 70]
-    },
-    'happiness_index': { 
-      sign: -1, 
-      value: 1.0, 
-      color_fct: (v: number) => v < 6.1 ? 'red' : v < 7 ? 'orange' : 'green',
-      limit: [0, 10]
-    },
-    'life_expectancy': { 
-      sign: -1, 
-      value: 1.0, 
-      color_fct: (v: number) => v < 75 ? 'red' : v < 78 ? 'orange' : 'green',
-      limit: [50, 90]
-    }
-  }
-};

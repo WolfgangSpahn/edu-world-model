@@ -8,14 +8,51 @@
  * 4. Compares the differences
  */
 
-import { loadData, setTrend, applyTrend, applyCorrelation, getTrendsFromData, printTrends, calculate, getProjection, config } from './src/index.js';
+import { loadData, setTrend, applyTrend, applyCorrelation, getTrendsFromData, printTrends, calculate, getProjection, getProjectionWithInterpolation, config } from './src/index.js';
 import { MilestoneTrends } from './src/types.js';
 import { resolve } from 'path';
-import { consequences_trends, ConsequenceTrends } from './src/config.js';
 
 // Helper function to format numbers for display
 function formatNumber(num: number | undefined): string {
   return num !== undefined ? num.toFixed(2) : 'N/A';
+}
+
+// Helper function to print milestone data without forward calculation
+function printMilestoneData(data: any, title: string) {
+  console.log(`\n=== ${title} ===`);
+  console.log('Indicator'.padEnd(20) + 'Year'.padEnd(8) + 'Trend'.padEnd(10) + 'Rate'.padEnd(12) + 'Value'.padEnd(15));
+  console.log('-'.repeat(65));
+
+  const milestoneYears = [2025, 2040, 2055];
+  
+  // Get all indicators from the loaded data
+  const indicators = data.projections.map((proj: any) => proj.indicator_key);
+  
+  for (const indicator of indicators) {
+    const indicatorData = data.projections.find((proj: any) => proj.indicator_key === indicator);
+    
+    for (const year of milestoneYears) {
+      const yearData = indicatorData?.paths?.data?.[year.toString()];
+      if (yearData) {
+        console.log(
+          indicator.padEnd(20) +
+          year.toString().padEnd(8) +
+          formatNumber(yearData.trend).padEnd(10) +
+          formatNumber(yearData.rate).padEnd(12) +
+          formatNumber(yearData.value).padEnd(15)
+        );
+      } else {
+        console.log(
+          indicator.padEnd(20) +
+          year.toString().padEnd(8) +
+          'N/A'.padEnd(10) +
+          'N/A'.padEnd(12) +
+          'N/A'.padEnd(15)
+        );
+      }
+    }
+    console.log('-'.repeat(65));
+  }
 }
 
 // Helper function to print all indicators data for comparison
@@ -25,7 +62,9 @@ function printAllIndicatorsData(data: any, title: string) {
   console.log('-'.repeat(65));
 
   const years = [2025, 2040, 2055, 2069, 2070];
-  const indicators = ['co2_emissions', 'mining_waste_dump', 'forests_area', 'soils_area'];
+  
+  // Get all indicators from the loaded data instead of hardcoding
+  const indicators = data.projections.map((proj: any) => proj.indicator_key);
   
   for (const indicator of indicators) {
     for (const year of years) {
@@ -47,64 +86,44 @@ function printAllIndicatorsData(data: any, title: string) {
 function main() {
   const dataPath = resolve('./data/projections.yaml');
   
-  console.log('🌍 Correlation Matrix Toggle Demo');
-  console.log('=================================');
+  console.log('🌍 Correlation Matrix Demo');
+  console.log('===========================');
   
-  // Show baseline first
+  // Show true milestone baseline (no calculation)
   const baselineData = loadData(dataPath);
-  printAllIndicatorsData(baselineData, 'BASELINE (No Changes)');
-  // printAllIndicatorsDataAllYears(baselineData, 'BASELINE (No Changes)');
   
-  console.log('\n🔄 Testing with CORRELATION MATRIX ENABLED...');
+  // Show calculated baseline for comparison
+  calculate(baselineData);
+  printAllIndicatorsData(baselineData, 'BASELINE AFTER CALCULATION');
   
-  // Test with correlation matrix ON
-  config.enableCorrelationMatrix = true;
+  console.log('\n🔄 Testing with CORRELATION MATRIX...');
+  
+  // Load fresh data for correlation test
   const data = loadData(dataPath);
 
-
-
-  // get trends from data
+  // get trends from all indicators in the loaded data
   const trends = getTrendsFromData(data);
-  // add trends from consequences
-  const cTrends = consequences_trends;
-
-  // add cTrends to trends
-  for (const [indicator, yearValues] of Object.entries(cTrends)) {
-    if (!trends[indicator]) {
-      trends[indicator] = { 2025: 0, 2040: 0, 2055: 0, unit: '' };
-    }
-    for (const [year, value] of Object.entries(yearValues)) {
-      const yearNum = parseInt(year) as 2025 | 2040 | 2055;
-      trends[indicator][yearNum] = value;
-    }
-  }
   
   printTrends(trends, 'BASIS TRENDS');
   
   // Create milestone trends and set multiple indicator trends to see correlation effects
-
   setTrend(trends, 'co2_emissions', 2025, -1.0, 'Gt');
   setTrend(trends, 'co2_emissions', 2040, -1.0, 'Gt');
   setTrend(trends, 'co2_emissions', 2055, -1.0, 'Gt');
   
-
   printTrends(trends, 'INITIAL TRENDS');
 
   // Apply correlation adjustments to the trends
-  applyCorrelation(trends);
+  const correlatedTrends = applyCorrelation(trends);
 
-  printTrends(trends, 'TRENDS AFTER CORRELATION ADJUSTMENTS');
+  printTrends(correlatedTrends, 'TRENDS AFTER CORRELATION ADJUSTMENTS');
 
   // Apply trends to data
-  applyTrend(data, trends);
+  applyTrend(data, correlatedTrends);
 
   calculate(data);
 
   printAllIndicatorsData(data, 'ALL INDICATORS WITH CORRELATION MATRIX ON');
-  // printAllIndicatorsDataAllYears(dataWithCorr, 'ALL INDICATORS WITH CORRELATION MATRIX ON (All Years)');
- 
-  // Reset config to default
-  config.enableCorrelationMatrix = true;
   
   console.log('\n✨ Demo completed successfully!');
 }

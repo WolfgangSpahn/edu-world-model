@@ -12,6 +12,7 @@ export {
   calculate, 
   calculateIndicator, 
   getProjection,
+  getProjectionWithInterpolation,
   enableCorrelationMatrix,
   disableCorrelationMatrix,
   isCorrelationMatrixEnabled
@@ -31,7 +32,6 @@ export {
   correlation_matrix, 
   rate_limits, 
   trend_limits, 
-  consequences,
   config 
 } from './config.js';
 

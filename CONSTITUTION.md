@@ -39,6 +39,10 @@ No new dependencies unless on the “teaching whitelist”.
 
 Each feature must include an “Out-of-Scope” list and a “Deletion Plan” for dead code.
 
+### IX. Avoid implicit changes
+
+Use explicit changes like result = function(input) instead of mutating input.
+
 ## Development Workflow
 
 ### Quality Gates

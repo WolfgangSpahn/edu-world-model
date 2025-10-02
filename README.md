@@ -43,6 +43,67 @@ const updated = getProjection(data, 'co2_emissions', 2030);
 console.log(`After intervention: ${updated?.value.toFixed(2)} units`);
 ```
 
+## Correlation Matrix Demo
+
+This example shows how to use baseline calculations vs. correlation-adjusted projections:
+
+```typescript
+import { 
+  loadData, setTrend, applyTrend, applyCorrelation, 
+  getTrendsFromData, printTrends, calculate 
+} from 'world-sim';
+
+function main() {
+  const dataPath = resolve('./data/projections.yaml');
+  
+  console.log('🌍 Correlation Matrix Demo');
+  console.log('===========================');
+  
+  // Show true milestone baseline (no calculation)
+  const baselineData = loadData(dataPath);
+  
+  // Show calculated baseline for comparison
+  calculate(baselineData);
+  printAllIndicatorsData(baselineData, 'BASELINE AFTER CALCULATION');
+  
+  console.log('\n🔄 Testing with CORRELATION MATRIX...');
+  
+  // Load fresh data for correlation test
+  const data = loadData(dataPath);
+
+  // get trends from all indicators in the loaded data
+  const trends = getTrendsFromData(data);
+  
+  printTrends(trends, 'BASIS TRENDS');
+  
+  // Create milestone trends and set multiple indicator trends to see correlation effects
+  setTrend(trends, 'co2_emissions', 2025, -1.0, 'Gt');
+  setTrend(trends, 'co2_emissions', 2040, -1.0, 'Gt');
+  setTrend(trends, 'co2_emissions', 2055, -1.0, 'Gt');
+  
+  printTrends(trends, 'INITIAL TRENDS');
+
+  // Apply correlation adjustments to the trends
+  const correlatedTrends = applyCorrelation(trends);
+
+  printTrends(correlatedTrends, 'TRENDS AFTER CORRELATION ADJUSTMENTS');
+
+  // Apply trends to data
+  applyTrend(data, correlatedTrends);
+
+  calculate(data);
+
+  printAllIndicatorsData(data, 'ALL INDICATORS WITH CORRELATION MATRIX ON');
+  
+  console.log('\n✨ Demo completed successfully!');
+}
+```
+
+This demo demonstrates:
+- **Baseline calculations**: Pure mathematical projections from milestone data
+- **Correlation effects**: Explicit application via `applyCorrelation(trends)`
+- **Clear separation**: Baseline vs. correlation-adjusted results
+
 ## Interactive REPL
 
 Start an interactive session with preloaded data:
@@ -69,6 +130,13 @@ This loads all functions and data into a Node.js REPL for experimentation:
 - **`calculate(data: ProjectionData): void`** - Recalculate all projections with current trends
 - **`getProjection(data: ProjectionData, indicator: string, year: number): YearData | null`** - Get data for specific indicator and year
 - **`getTrend(data: ProjectionData, indicator: string, year: number): number`** - Get trend value for specific year
+
+### Correlation Matrix Functions
+
+- **`getTrendsFromData(data: ProjectionData): MilestoneTrends`** - Extract current trends from loaded data
+- **`applyCorrelation(trends: MilestoneTrends): MilestoneTrends`** - Apply correlation adjustments and return new trends object
+- **`applyTrend(data: ProjectionData, trends: MilestoneTrends): void`** - Apply milestone trends to data
+- **`printTrends(trends: MilestoneTrends, title: string): void`** - Display trends in formatted table
 
 ### Mathematical Model
 
