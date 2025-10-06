@@ -1,16 +1,16 @@
 /**
- * World-Sim TypeScript Package
+ * edu-world-model TypeScript Package
  * Educational TypeScript library for world simulation modeling
  * 
  * Main exports for the package
  */
 
+
+
 // Core functions
-export { loadData, cloneData } from './load-data.js';
+export { projections } from './projections.js';
 export { setTrend, applyTrend, applyCorrelation, getTrendsFromData, printTrends, getTrend, isValidTrend, set_correlation_trend } from './set-trend.js';
-export { 
-  calculate
-} from './calculate.js';
+export { calculate } from './calculate.js';
 
 // Types
 export type { 

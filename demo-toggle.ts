@@ -8,9 +8,10 @@
  * 4. Compares the differences
  */
 
-import { loadData, setTrend, applyTrend, applyCorrelation, getTrendsFromData, printTrends, calculate } from './src/index.js';
+import { projections, setTrend, applyTrend, applyCorrelation, getTrendsFromData, printTrends, calculate } from './src/index.js';
 import { MilestoneTrends, Indicator } from './src/types.js';
 import { resolve } from 'path';
+
 
 // Helper function to format numbers for display
 function formatNumber(num: number | undefined): string {
@@ -91,7 +92,8 @@ function main() {
   console.log('===========================');
   
   // Show true milestone baseline (no calculation)
-  const baselineData = loadData(dataPath);
+  // const baselineData = loadData(dataPath);
+  const baselineData = projections ; // Use imported projections data
   
   // Show calculated baseline for comparison
   calculate(baselineData);
@@ -100,7 +102,9 @@ function main() {
   console.log('\n🔄 Testing with CORRELATION MATRIX...');
   
   // Load fresh data for correlation test
-  const data = loadData(dataPath);
+  const data = projections ;
+  // Get data from projections.js
+
 
   // get trends from all indicators in the loaded data
   const trends = getTrendsFromData(data);

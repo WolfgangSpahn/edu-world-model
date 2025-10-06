@@ -134,10 +134,10 @@ export const rate_limits: RateLimits = {
   'gini_index':           [    0, 100],
   'happiness_index':      [    0,  10],
   'life_expectancy':      [   -2.0,  2.0],
-  'gdp_per_cap':          [    0, 200000],
-  'debt_per_cap':         [    0, 500000],
-  'wealth_per_cap':       [    0, 1000000],
-  'population':           [    0,  20],
+  'gdp_per_cap':          [   -200000, 200000],
+  'debt_per_cap':         [   -500000, 500000],
+  'wealth_per_cap':       [   -1000000, 1000000],
+  'population':           [   -20,  20],
   'global_reaction_fund': [    0, 10000]
 };
 
