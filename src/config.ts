@@ -132,7 +132,7 @@ export const rate_limits: RateLimits = {
   'soils_area':           [ -100, 100],
   'unemployment_rate':    [    0,  50],
   'gini_index':           [    0, 100],
-  'happiness_index':      [    0,  10],
+  'happiness_index':      [   -0.5,  0.5],
   'life_expectancy':      [   -2.0,  2.0],
   'gdp_per_cap':          [   -200000, 200000],
   'debt_per_cap':         [   -500000, 500000],

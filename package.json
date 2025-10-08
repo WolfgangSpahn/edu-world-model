@@ -1,6 +1,6 @@
 {
   "name": "edu-world-model",
-  "version": "1.0.3",
+  "version": "1.0.15",
   "description": "Educational TypeScript package for world simulation modeling with environmental indicators",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

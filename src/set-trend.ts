@@ -7,8 +7,7 @@ import { ProjectionData, MilestoneYear, MilestoneTrends } from './types.js';
 import { years_map, trend_limits, correlation_matrix } from './config.js';
 import lodash from 'lodash';
 
-
-
+const MILESTONE_YEARS: ReadonlyArray<MilestoneYear> = [2025, 2040, 2055];
 
 /**
  * Sets trend value for a specific indicator and milestone year in a MilestoneYearTrend object
@@ -45,10 +44,10 @@ export function setTrend(
   // Initialize indicator if it doesn't exist
   if (!trends[indicatorKey]) {
     trends[indicatorKey] = {
-      2025: 0,
-      2040: 0,
-      2055: 0,
-      unit: unit
+      2025: null,
+      2040: null,
+      2055: null,
+      unit
     };
   }
 
@@ -98,8 +97,10 @@ export function applyTrend(
 
       // Apply trend to all years in the range
       for (let currentYear = startYear; currentYear <= endYear; currentYear++) {
-        if (indicator.paths.data[currentYear]) {
-          indicator.paths.data[currentYear].trend = trendValue;
+        const yearKey = String(currentYear);
+        const entry = indicator.paths.data[yearKey];
+        if (entry) {
+          entry.trend = trendValue;
         }
       }
     }
@@ -120,10 +121,14 @@ export function getTrend(
   year: number
 ): number | undefined {
   const indicator = data.projections.find(p => p.indicator_key === indicatorKey);
-  if (!indicator || !indicator.paths.data[year]) {
+  if (!indicator) {
     return undefined;
   }
-  return indicator.paths.data[year].trend;
+  const entry = indicator.paths.data[String(year)];
+  if (!entry) {
+    return undefined;
+  }
+  return entry.trend ?? undefined;
 }
 
 /**
@@ -197,7 +202,7 @@ export function set_correlation_trend(
     
     for (const year of milestoneYears) {
       const currentTrend = getTrend(data, indicatorKey, year);
-      if (currentTrend === undefined) {
+      if (currentTrend == null) {
         continue; // Skip if no trend is set for this year
       }
 
@@ -262,11 +267,9 @@ export function applyCorrelation(
     }
     
     // Apply correlation adjustment to all milestone years
-    const milestoneYears: MilestoneYear[] = [2025, 2040, 2055];
-    
-    for (const year of milestoneYears) {
+    for (const year of MILESTONE_YEARS) {
       const currentTrend = adjustedTrends[indicatorKey][year];
-      if (currentTrend === undefined) {
+      if (currentTrend == null) {
         continue; // Skip if no trend is set for this year
       }
 
@@ -304,18 +307,16 @@ export function getTrendsFromData(data: ProjectionData): MilestoneTrends {
     
     // Initialize the indicator in trends object with zeros
     trends[indicatorKey] = {
-      2025: 0,
-      2040: 0,
-      2055: 0,
+      2025: null,
+      2040: null,
+      2055: null,
       unit: indicator.paths.unit
     };
     
-    // Extract actual trends for milestone years from the data
-    const milestoneYears: MilestoneYear[] = [2025, 2040, 2055];
-    
-    for (const year of milestoneYears) {
-      if (indicator.paths.data[year]) {
-        trends[indicatorKey][year] = indicator.paths.data[year].trend;
+    for (const year of MILESTONE_YEARS) {
+      const entry = indicator.paths.data[String(year)];
+      if (entry) {
+        trends[indicatorKey][year] = entry.trend;
       }
     }
   }
@@ -337,14 +338,17 @@ export function printTrends(trends: MilestoneTrends, title: string = 'TRENDS'): 
   // Sort indicators alphabetically for consistent display
   const sortedIndicators = Object.keys(trends).sort();
   
+  const formatTrend = (value: number | null): string =>
+    value == null ? 'null'.padEnd(12) : value.toFixed(2).padEnd(12);
+  
   for (const indicatorKey of sortedIndicators) {
     const indicatorTrends = trends[indicatorKey];
     
     console.log(
       indicatorKey.padEnd(20) +
-      indicatorTrends[2025].toFixed(2).padEnd(12) +
-      indicatorTrends[2040].toFixed(2).padEnd(12) +
-      indicatorTrends[2055].toFixed(2).padEnd(12) +
+      formatTrend(indicatorTrends[2025]) +
+      formatTrend(indicatorTrends[2040]) +
+      formatTrend(indicatorTrends[2055]) +
       indicatorTrends.unit.padEnd(10)
     );
   }

@@ -95,9 +95,9 @@ export function calculate(data: ProjectionData): void {
       
       if (currentYear) {
         currentYearData.set(indicator.indicator_key, {
-          rate: currentYear.rate,
-          value: currentYear.value,
-          trend: currentYear.trend
+          rate: currentYear.rate ?? 0,
+          value: currentYear.value ?? 0,
+          trend: currentYear.trend ?? 0
         });
       }
     }
@@ -126,19 +126,81 @@ export function calculate(data: ProjectionData): void {
       const activeTrend = getActiveTrend(indicatorData, year);
 
       // Rate recurrence: r_{t+1} = clip_k(r_t + τ_t)
-      const basicRateChange = currentYear.rate + activeTrend;
+      // isue a warning if rate is null
+      if (currentYear.rate == null) {
+        console.warn(`Missing rate for indicator ${indicator.indicator_key} in year ${year}, cannot compute next rate.`);
+        nextYear.rate = null;
+      }
+      const basicRateChange = (currentYear.rate ?? 0) + activeTrend;
       
       const newRate = clipRate(
         indicator.indicator_key, 
         basicRateChange
       );
+
       nextYear.rate = newRate;
 
       // Value recurrence: v_{t+1} = v_t + r_t  
-      nextYear.value = currentYear.value + currentYear.rate;
+      // issue a warning if value is null
+      if (currentYear.value == null) {
+        console.warn(`Missing value for indicator ${indicator.indicator_key} in year ${year}, cannot compute next value.`);
+        nextYear.value = null;
+      } 
+      nextYear.value = (currentYear.value ?? 0) + (currentYear.rate ?? 0);
+
       
       // Set trend based on milestone switching logic
       nextYear.trend = getActiveTrend(indicatorData, year + 1);
+
+      console.log(`Indicator ${indicator.indicator_key} - Year ${year + 1}: Next Year Rate = ${nextYear.rate.toFixed(4)}, Next Year Value = ${nextYear.value.toFixed(4)}, Next Year Trend = ${nextYear.trend.toFixed(4)}`);
+    }
+  }
+}
+
+
+// assume data is well formed
+export function fixTrendRate(
+  data: ProjectionData,
+  anchorYearIntervals: number[][]
+): void {
+  for (const indicator of data.projections) {
+    const series = indicator.paths.data;
+    for (let i = anchorYearIntervals.length - 1; i >= 0; i--) {
+      const [startYear, endYear] = anchorYearIntervals[i];
+      const startEntry = series[String(startYear)];
+      const endEntry = series[String(endYear)];
+      const interval = endYear - startYear;
+
+      if (!startEntry || !endEntry) {
+        console.warn(`Missing data for trend/rate fix: ${indicator.indicator_key} ${startYear}-${endYear}`);
+        continue;
+      }
+
+      const startValue = startEntry.value;
+      const endValue = endEntry.value;
+      if (startValue == null || endValue == null) {
+        console.warn(`Missing values for trend/rate fix: ${indicator.indicator_key} ${startYear}-${endYear}`);
+        continue;
+      }
+
+      const derivedStartRate = (endValue - startValue) / interval;
+      startEntry.rate = derivedStartRate;
+
+      let endRate: number | null = typeof endEntry.rate === 'number' ? endEntry.rate : null;
+      if (endRate == null) {
+        const nextEntry = series[String(endYear + 1)];
+        if (nextEntry && typeof nextEntry.value === 'number') {
+          endRate = nextEntry.value - endValue;
+          endEntry.rate = endRate;
+        }
+      }
+
+      if (endRate == null) {
+        console.warn(`Missing end rate for trend fix: ${indicator.indicator_key} ${startYear}-${endYear}`);
+        continue;
+      }
+
+      startEntry.trend = (endRate - derivedStartRate) / interval;
     }
   }
 }

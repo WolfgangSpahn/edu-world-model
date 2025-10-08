@@ -10,7 +10,7 @@
 // Core functions
 export { projections } from './projections.js';
 export { setTrend, applyTrend, applyCorrelation, getTrendsFromData, printTrends, getTrend, isValidTrend, set_correlation_trend } from './set-trend.js';
-export { calculate } from './calculate.js';
+export { fixTrendRate, calculate } from './calculate.js';
 
 // Types
 export type { 

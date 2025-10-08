@@ -1,40 +1,85 @@
 /**
- * Demo script showing correlation matrix effects in World-Sim
+ * Demo script showing correlation matrix toggle effects
  * 
  * This demo:
- * 1. Shows baseline values for all 4 indicators at key years
- * 2. Changes trends from 0 to -1 for milestone years 2025, 2040, 2055
- * 3. Shows how correlation matrix influences the final results
+ * 1. Shows baseline values
+ * 2. Changes CO2 trends to -1 for milestone years with correlation matrix ON
+ * 3. Changes CO2 trends to -1 for milestone years with correlation matrix OFF
+ * 4. Compares the differences
  */
 
-import { loadData, setTrend, applyTrend, calculate } from './src/index.js';
-import { Indicator } from './src/types.js';
-import { MilestoneTrends } from './src/types.js';
+import { fixTrendRate, projections, setTrend, applyTrend, applyCorrelation, getTrendsFromData, printTrends, calculate } from './src/index.js';
+import { MilestoneTrends, Indicator, ProjectionData } from './src/types.js';
 import { resolve } from 'path';
+
 
 // Helper function to format numbers for display
 function formatNumber(num: number | undefined): string {
-  return num !== undefined ? num.toFixed(2) : 'N/A';
+  return num !== undefined ? num.toFixed(3) : 'N/A';
 }
 
-// Helper function to print indicator data for specific years
-function printIndicatorData(data: any, title: string) {
+// Helper function to print milestone data without forward calculation
+function printMilestoneData(data: any, title: string) {
   console.log(`\n=== ${title} ===`);
   console.log('Indicator'.padEnd(20) + 'Year'.padEnd(8) + 'Trend'.padEnd(10) + 'Rate'.padEnd(12) + 'Value'.padEnd(15));
   console.log('-'.repeat(65));
+
+  const milestoneYears = [1980, 1995, 2010, 2025, 2040, 2055, 2070];
   
-  const indicators = ['co2_emissions', 'mining_waste_dump', 'forests_area', 'soils_area'];
-  const years = [2025, 2040, 2055, 2070];
+  // Get all indicators from the loaded data
+  const indicators = data.projections.map((proj: any) => proj.indicator_key);
   
   for (const indicator of indicators) {
+    const indicatorData = data.projections.find((proj: any) => proj.indicator_key === indicator);
+    
+    for (const year of milestoneYears) {
+      const yearData = indicatorData?.paths?.data?.[year.toString()];
+      if (yearData) {
+        console.log(
+          indicator.padEnd(20) +
+          year.toString().padEnd(8) +
+          formatNumber(yearData.trend).padEnd(10) +
+          formatNumber(yearData.rate).padEnd(12) +
+          formatNumber(yearData.value).padEnd(15)
+        );
+      } else {
+        console.log(
+          indicator.padEnd(20) +
+          year.toString().padEnd(8) +
+          'N/A'.padEnd(10) +
+          'N/A'.padEnd(12) +
+          'N/A'.padEnd(15)
+        );
+      }
+    }
+    console.log('-'.repeat(65));
+  }
+}
+
+// Helper function to print all indicators data for comparison
+function printIndicatorData(data: any, title: string, indicatorKey?: string) {
+  console.log(`\n=== ${title} ===`);
+  console.log('Indicator'.padEnd(20) + 'Year'.padEnd(8) + 'Trend'.padEnd(10) + 'Rate'.padEnd(12) + 'Value'.padEnd(15));
+  console.log('-'.repeat(65));
+
+  const years = [1980, 1995, 2010, 2025, 2040, 2055, 2070];
+
+  // Filter indicators if indicatorKey is provided
+  const indicators = indicatorKey
+    ? [indicatorKey]
+    : data.projections.map((proj: any) => proj.indicator_key);
+
+  for (const indicator of indicators) {
+    const indicatorProj = data.projections.find((p: Indicator) => p.indicator_key === indicator);
     for (const year of years) {
-      const indicatorProj = data.projections.find((p: Indicator) => p.indicator_key === indicator);
       const projection = indicatorProj?.paths.data[year];
+      const formatTrend = projection?.trend !== undefined ? projection.trend.toFixed(3) : 'N/A';
+      const formatRate = projection?.rate !== undefined ? projection.rate.toFixed(3) : 'N/A';
       console.log(
-        indicator.padEnd(20) + 
-        year.toString().padEnd(8) + 
-        formatNumber(projection?.trend).padEnd(10) + 
-        formatNumber(projection?.rate).padEnd(12) + 
+        indicator.padEnd(20) +
+        year.toString().padEnd(8) +
+        formatTrend.padEnd(10) +
+        formatRate.padEnd(12) +
         formatNumber(projection?.value).padEnd(15)
       );
     }
@@ -42,63 +87,75 @@ function printIndicatorData(data: any, title: string) {
   }
 }
 
+const YEARS_TO_DISPLAY = [1980, 1995, 2010, 2025,2026,2027,2028,2029,2030,2031,2032,2033,2034,2035,2036,2037,2038,2039, 2040, 2055, 2070];
+
+function filterProjectionsByYears(data: any, years: number[]) {
+  const allowedYears = new Set(years.map((year) => year.toString()));
+
+  return {
+    ...data,
+    projections: data.projections?.map((projection: any) => {
+      const filteredData = Object.fromEntries(
+        Object.entries(projection.paths?.data ?? {}).filter(([year]) => allowedYears.has(year))
+      );
+
+      return {
+        ...projection,
+        paths: {
+          ...projection.paths,
+          data: filteredData,
+        },
+      };
+    }),
+  };
+}
+
+const INDICATORS_TO_DISPLAY = ['happiness_index']
+function filterProjectionsByIndicators(data: any, indicatorKeys: string[]) {
+  const allowedIndicators = new Set(indicatorKeys);
+
+  return {
+    ...data,
+    projections: data.projections?.filter((projection: any) =>
+      allowedIndicators.has(projection.indicator_key)
+    ),
+    };
+}
+// log projectins including paths inside. the paths objects to be printed as well
+function printFiltered(data: any) {
+  const filtered = filterProjectionsByIndicators(
+    filterProjectionsByYears(data, YEARS_TO_DISPLAY),
+    INDICATORS_TO_DISPLAY
+  );
+  console.log(JSON.stringify(filtered, null, 2));
+}
+
+
+
+
+
+
 function main() {
   const dataPath = resolve('./data/projections.yaml');
+  const years = [2025, 2040, 2055, 2069, 2070];
+  const hist_anchor_year_intervals = [[1980, 1995], [1995, 2010], [2010, 2025]];
   
-  console.log('🌍 World Simulation Correlation Matrix Demo');
-  console.log('==========================================');
+  console.log('🌍 Demo');
+  console.log('===========================');
   
-  // Load initial data
-  const data = loadData(dataPath);
-  
-  // Show baseline values BEFORE any changes
-  printIndicatorData(data, 'BASELINE VALUES (Before Any Changes)');
-  
-  console.log('\n📝 Now setting CO2 emissions trend to -1.0 for milestone years 2025, 2040, 2055...');
-  console.log('   Other indicators will remain at baseline values');
-  console.log('   This will show how correlation matrix affects CO2 when only it changes');
-  
-  // Create milestone trends and set CO2 trends
-  const trends: MilestoneTrends = {};
-  const milestoneYears: (2025 | 2040 | 2055)[] = [2025, 2040, 2055];
-  
-  for (const year of milestoneYears) {
-    try {
-      setTrend(trends, 'co2_emissions', year, -1.0, 'Gt');
-      console.log(`   ✓ Set co2_emissions trend to -1.0 for year ${year}`);
-    } catch (error) {
-      console.log(`   ⚠️  Could not set trend for co2_emissions at ${year}: ${error}`);
-    }
-  }
-  
-  // Apply trends to data
-  applyTrend(data, trends);
-  
-  console.log('\n🔄 Calculating with correlation matrix influences...');
-  
-  // Calculate with correlation matrix
-  calculate(data);
-  
-  // Show results after correlation matrix application
-  printIndicatorData(data, 'AFTER CO2 TREND CHANGES AND CORRELATION MATRIX APPLICATION');
-  
-  console.log('\n📊 CORRELATION MATRIX ANALYSIS:');
-  console.log('-------------------------------');
-  console.log('The correlation matrix is:');
-  console.log('co2_emissions    → affects: co2(1.0), mining(-1.0), forests(-1.0), soils(-1.0)');
-  console.log('mining_waste_dump → affects: mining(1.0), others(0.0)');
-  console.log('forests_area     → affects: forests(1.0), others(0.0)');
-  console.log('soils_area       → affects: soils(1.0), others(0.0)');
-  
-  console.log('\n🎯 KEY OBSERVATIONS:');
-  console.log('- Only CO2 emissions trend was changed to -1.0');
-  console.log('- Other indicators remained at baseline, but still influence CO2 through correlation matrix');
-  console.log('- CO2 is negatively correlated with mining (+100 rate) → gets negative influence');
-  console.log('- CO2 is negatively correlated with forests (-52 rate) → gets positive influence');
-  console.log('- CO2 is negatively correlated with soils (-33 rate) → gets positive influence');
-  console.log('- Net effect: CO2 rate changes by trend + correlation influences from other indicators');
-  
-  console.log('\n✨ Demo completed successfully!');
+  // Show true milestone baseline (no calculation)
+  // const baselineData = loadData(dataPath);
+  const baseData = projections ; // Use imported projections data
+
+  fixTrendRate(baseData, [[1980, 1995], [1995, 2010], [2010, 2025]]);
+  calculate(baseData);
+
+  printFiltered(baseData);
+  printMilestoneData(baseData, 'Baseline Data (No Calculation)');
+
+
+  return;
+
 }
 
 // Run the demo
