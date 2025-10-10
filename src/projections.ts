@@ -8,7 +8,6 @@ export const projections: ProjectionData = {
       category: "Naturverbrauch_",
       source: "Our World in Data",
       strategy: "Halte Emission konstant. Kein Umbau Richtung carbon free. Nimmt Hitze und Umweltzerstörung in Kauf.",
-      alternative: ["Reduziere CO2 Emissionen moderat.",[-0.1,-0.1,-0.1]],
       paths: {
         unit: "Gt",
         data: {
@@ -98,7 +97,7 @@ export const projections: ProjectionData = {
     {
       indicator_key: "unemployment_rate",
       name: "Arbeitslosenquote",
-      category: "Menschheit",
+      category: "Wohlstand",
       source: "World Bank",
       strategy: "Arbeitslosenquote folgt der wirtschaftlichen Entwicklung (GDP). Keine aktiven Maßnahmen.",
       paths: {
@@ -116,7 +115,7 @@ export const projections: ProjectionData = {
     {
       indicator_key: "avg_country_gini",
       name: "Durchschnittliche Länderungleichheit, 100 = max inequality",
-      category: "Menschheit",
+      category: "Wohlstand",
       source: "World Bank",
       strategy: "Durchschnittliche Länderungleichheit folgt der wirtschaftlichen Entwicklung (GDP). Keine aktiven Maßnahmen.",
       paths: {
@@ -134,7 +133,7 @@ export const projections: ProjectionData = {
     {
       indicator_key: "happiness_index",
       name: "Glücksindex, 10 = max happiness",
-      category: "Menschheit",
+      category: "Wohlstand",
       source: "World Happiness Report",
       strategy: "Glücksindex folgt dem Gleichheitsindex und der Arbeitslosenquote. Keine aktiven Maßnahmen.",
       paths: {
@@ -152,7 +151,7 @@ export const projections: ProjectionData = {
     {
       indicator_key: "life_expectancy",
       name: "Lebenserwartung",
-      category: "Menschheit",
+      category: "Wohlstand",
       source: "World Bank",
       strategy: "Erwartete Lebenserwartung folgt der Arbeitslosenquote, Zustand der Natur und Erderwärmung. Aktive Maßnahmen erst ab 2040. Massive Investition in Kühlungstechnologien.",
       paths: {
@@ -263,7 +262,7 @@ export const projections: ProjectionData = {
     {
       indicator_key: "population",
       name: "Global Population",
-      category: "Menschheit",
+      category: "Wohlstand",
       source: "UN DESA",
       strategy: "Bevölkerungswachstum folgt den UN DESA Projektionen. Zunehmende Urbanisierung und Bildung führt zu einem Abflachen.",
       paths: {
